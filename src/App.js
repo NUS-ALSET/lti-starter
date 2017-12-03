@@ -35,7 +35,6 @@ class App extends Component {
       signInSuccess: (currentUser, credential, redirectUrl) => {
 		
 		// User is already signed in.
-		var isAnonymous = currentUser.isAnonymous;
 		var uid = currentUser.uid;
 		console.log("uid:" + uid);
 		console.log(currentUser);
