@@ -2,6 +2,19 @@ const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
 
+// The Firebase Admin SDK to access the Firebase Realtime Database. 
+const admin = require('firebase-admin');
+var serviceAccount = require("./service-account.json");
+
+// Load configuration
+const config = require('./config');
+var model = require('./model');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: config.lti.databaseURL
+});
+
 const app = express();
 
 // Setup logger
