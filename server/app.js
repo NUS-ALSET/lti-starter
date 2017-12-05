@@ -7,8 +7,8 @@ const path = require('path');
 //var serviceAccount = require("./service-account.json");
 
 // Load configuration
-const config = require('./config');
-var model = require('./model');
+//const config = require('./config');
+//var model = require('./model');
 
 //admin.initializeApp({
 //  credential: admin.credential.cert(serviceAccount),
