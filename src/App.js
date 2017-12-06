@@ -15,6 +15,29 @@ const config = {
 
 firebase.initializeApp(config);
 
+firebase.auth().onAuthStateChanged(function(currentUser) {
+  if (currentUser) {
+  
+	// User is signed in.
+	var uid = currentUser.uid;
+	console.log("Already signed in");
+	console.log("uid:" + uid);
+	
+	var displayName = currentUser.displayName;
+	
+	var providerData = currentUser.providerData;
+
+	currentUser.getIdToken().then(function(token){
+		
+	});
+	
+  } else {
+  
+	// User is signed out.
+	console.log("signed out");
+  }
+});
+
 class App extends Component {
 	
   state = {

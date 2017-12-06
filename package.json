@@ -2,6 +2,7 @@
   "name": "lti-starter",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:3001/",
   "dependencies": {
     "express": "^4.16.2",
     "firebase": "^4.7.0",
@@ -16,7 +17,7 @@
     "react-scripts": "1.0.17"
   },
   "scripts": {
-	"start": "react-scripts build && node server",
+	"start": "react-scripts start",
 	"start:react": "react-scripts start",
 	"start:server": "node server",
     "build": "react-scripts build",
