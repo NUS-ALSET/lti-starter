@@ -14,12 +14,14 @@
     "react-firebaseui": "^1.0.10",
     "react-redux": "^5.0.6",
     "react-router-dom": "^4.2.2",
-    "react-scripts": "1.0.17"
+    "react-scripts": "1.0.17",
+    "redux": "^3.7.2",
+    "redux-logger": "^3.0.6"
   },
   "scripts": {
-	"start": "react-scripts start",
-	"start:react": "react-scripts start",
-	"start:server": "node server",
+    "start": "set PORT=3000 && react-scripts start",
+    "start:react": "react-scripts start",
+    "start:server": "node server",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
