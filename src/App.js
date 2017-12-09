@@ -8,6 +8,8 @@ import firebase from 'firebase';
 
 import actions from './actions';
 
+import {userService, messageService} from './services';
+
 // Configure Firebase.
 const config = {
   apiKey: "AIzaSyBL1XcR8F-m_gNcKLBNdIGvcv7DYjLvgrI",
@@ -54,20 +56,22 @@ class App extends Component {
 			var displayName = currentUser.displayName ? currentUser.displayName: uid;
 			var providerData = currentUser.providerData;
 			
-			_this.props.dispatch(actions.setSignedIn(true));
-			_this.props.dispatch(actions.setUser({displayName: displayName, uid: uid}));
-			
-			_this.setState({signedIn:true});
-			_this.setState({displayName:displayName});
-			_this.setState({uid:uid});
-			//currentUser.getIdToken().then(function(token){	
-			//});
+			currentUser.getIdToken().then(function(token){	
+				_this.props.dispatch(actions.setSignedIn(true));
+				_this.props.dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
+				localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
+				
+				_this.setState({signedIn:true});
+				_this.setState({displayName:displayName});
+				_this.setState({uid:uid});
+			});
 			
 		  } else {
 		  
 			// User is signed out.
 			_this.props.dispatch(actions.setSignedIn(false));
 			_this.props.dispatch(actions.setUser({}));
+			localStorage.removeItem('user');
 			
 			_this.setState({signedIn:false});
 			_this.setState({displayName:null});
@@ -83,7 +87,7 @@ class App extends Component {
 	};
 	
 	 componentDidMount() {
-		 
+		 console.log("componentDidMount");
 	 }
 	 
 	// Configure FirebaseUI.
@@ -106,12 +110,15 @@ class App extends Component {
 			var displayName = currentUser.displayName ? currentUser.displayName: uid;
 			var providerData = currentUser.providerData;
 			
-			this.props.dispatch(actions.setSignedIn(true));
-			this.props.dispatch(actions.setUser({displayName: displayName, uid: uid}));
-			
-			this.setState({signedIn:true});
-			this.setState({displayName:displayName});
-			this.setState({uid:uid});
+			currentUser.getIdToken().then(function(token){
+				this.props.dispatch(actions.setSignedIn(true));
+				this.props.dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
+				localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
+				
+				this.setState({signedIn:true});
+				this.setState({displayName:displayName});
+				this.setState({uid:uid});
+			});
 			
 			return false; // Avoid redirects after sign-in.
 		  }
@@ -128,6 +135,7 @@ class App extends Component {
 		// User is signed out.
 		this.props.dispatch(actions.setSignedIn(false));
 		this.props.dispatch(actions.setUser({}));
+		localStorage.removeItem('user');
 		
 		this.setState({signedIn:false});
 		this.setState({displayName:null});
@@ -139,8 +147,15 @@ class App extends Component {
 	});
   }
   
-  handleClick = () => {
-    console.log('this is:', this);
+  handleMessageChange = (e) =>{
+	  this.setState({message: e.target.value});
+  }
+  
+  writeNewMessage = () =>{
+	  // Write a new message to group
+	  if (this.state.message){
+		messageService.create(this.state.message);
+	  }
   }
   
   render() {
@@ -169,6 +184,10 @@ class App extends Component {
 		  You are now signed-in!
 		</p>
 		<button name="btnSignOut" id="btnSignOut" onClick={this.handleSignOut}>Sign Out</button>
+		<div>
+			<span>Leave a message:</span>
+			<input type="text" name="txtMessage" id="txtMessage" onChange={this.handleMessageChange}/><button type="button" name="btnSend" id="btnSend" onClick={this.writeNewMessage}>Submit</button>
+		</div>
 	  </div>
     );
   }
