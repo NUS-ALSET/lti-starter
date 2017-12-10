@@ -23,7 +23,6 @@ firebase.initializeApp(config);
 class App extends Component {
 	
 	ctoken = null;
-	
 	constructor(props) {
 		super(props);
 		var _this = this;
@@ -83,11 +82,20 @@ class App extends Component {
 
 	state = {
 		signedIn: false, // Local signed-in state.
-		displayName: ''
+		displayName: '',
+		messages: {}
 	};
 	
 	 componentDidMount() {
+		 var _this = this;
 		 console.log("componentDidMount");
+		 
+		 // Load Messages List
+		 messageService.getAll().then(function(res){
+			 console.log("returned messages");
+			 console.log(res);
+			 _this.setState({messages: res});
+		 });
 	 }
 	 
 	// Configure FirebaseUI.
@@ -148,16 +156,40 @@ class App extends Component {
   }
   
   handleMessageChange = (e) =>{
-	  this.setState({message: e.target.value});
+	  this.setState({newMessageEntry: e.target.value});
   }
   
   writeNewMessage = () =>{
 	  // Write a new message to group
-	  if (this.state.message){
-		messageService.create(this.state.message);
+	  if (this.state.newMessageEntry){
+		var _this = this;  
+		messageService.create(this.state.newMessageEntry).then(function(res){
+			if (typeof(res.message) != "undefined"){
+				//var data = _this.state.message;
+				
+				// Add the new message to the state of current messages List
+				//messages.push(res);
+				//_this.setState({messages: messages});
+			}
+		});
 	  }
   }
   
+  Message = (props) =>{
+	  const content = props.entries.map((post) =>
+		<div class="row" key={post.id}>
+		  <div class="col-md-4">{post.id}</div>
+		  <div class="col-md-4">{post.uid}</div>
+		  <div class="col-md-4">{post.message}</div>
+		</div>
+	  );
+	  return (
+		<div>
+		  {content}
+		</div>
+	  );
+	}
+	
   render() {
 	if (!this.state.signedIn) {
 		return (
@@ -188,6 +220,7 @@ class App extends Component {
 			<span>Leave a message:</span>
 			<input type="text" name="txtMessage" id="txtMessage" onChange={this.handleMessageChange}/><button type="button" name="btnSend" id="btnSend" onClick={this.writeNewMessage}>Submit</button>
 		</div>
+		<this.Message entries={this.state.messages} />
 	  </div>
     );
   }

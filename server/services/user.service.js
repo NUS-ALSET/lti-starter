@@ -1,9 +1,4 @@
-exports.getMessages = function(response, db, uid){
-	db.ref('messages').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
-		response.setHeader('Content-Type', 'application/json');
-		response.send(JSON.stringify(snapshot.val()));
-	});
-};
+//const commonService = require('./common.service');
 
 exports.addGroupMember = function (db, group_id, uid, callback){
 	// A Group Member entry.
