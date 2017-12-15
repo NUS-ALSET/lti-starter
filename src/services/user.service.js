@@ -9,12 +9,10 @@ export const userService = {
 
 function verifyToken(idToken) {
 	// Get AccessToken from localstorage
-	var idToken = "";
-	
     const requestOptions = {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({idToken })
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+        body: {}
     };
 
     return fetch('/users/verify-token', requestOptions).then(commonService.handleResponse);

@@ -3,6 +3,8 @@ const morgan = require('morgan');
 const path = require('path');
 const bearerToken = require('express-bearer-token');
 var bodyParser = require('body-parser');
+const cors = require("cors");
+var async = require("async");
 
 // The Firebase Admin SDK to access the Firebase Realtime Database. 
 const admin = require('firebase-admin');
@@ -15,6 +17,9 @@ const config = require('./config');
 const userService = require('./services/user.service');
 const authService = require('./services/auth.service');
 const messageService = require('./services/message.service');
+const groupService = require('./services/group.service');
+const questionService = require('./services/question.service');
+const answerService = require('./services/answer.service');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -24,6 +29,9 @@ admin.initializeApp({
 const app = express();
 
 var db = admin.database();
+
+app.enable('trust proxy');
+app.use(cors({ origin: true }));
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -47,7 +55,7 @@ app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:htt
 });*/
 
 // USERS
-app.post('users', (req, res) => {
+app.post('/users', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   
   //...
@@ -55,7 +63,39 @@ app.post('users', (req, res) => {
   response.send(JSON.stringify({}));
 });
 
-app.post('users/verify-token', (req, res) => {
+app.post('/users/verify-token', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	  
+	// Using Firebase Admin SDK to verify the token
+	admin.auth().verifyIdToken(req.token)
+	  .then(function(decodedToken) {
+		var uid = decodedToken.uid;
+		var classId = "";
+		var classTitle = "";
+		if (typeof(decodedToken.class_id) != "undefined"){
+			classId = decodedToken.class_id;
+		}
+		if (typeof(decodedToken.class_title) != "undefined"){
+			classTitle = decodedToken.class_title;
+		}
+		if(classId){
+			groupService.create(res, db, classId, uid, classTitle, '');
+			//groupService.addMember(res, db, classId, uid);
+		}
+		
+		res.status(200).send('OK');
+		
+	  }).catch(function(error) {
+		// Handle error
+		console.log(error);
+		res.status(403).send('Not Authorization');
+	});
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
+});
+
+app.post('/users/:id', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   
   //...
@@ -63,21 +103,173 @@ app.post('users/verify-token', (req, res) => {
   response.send(JSON.stringify({}));
 });
 
-app.post('users/:id', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  
-  //...
-  
-  response.send(JSON.stringify({}));
+// GROUPS
+app.post('/groups/create', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	 
+	var groupName = "";
+	if (typeof(req.body.group_title) != "undefined"){
+		groupName = req.body.group_name;
+	}
+	
+	var groupPassword = "";
+	if (typeof(req.body.group_password) != "undefined"){
+		groupPassword = req.body.group_password;
+	}
+	if (!groupName){
+		res.setHeader('Content-Type', 'application/json');
+		response.send(JSON.stringify({"err": "Requires group name"}));
+	}else{
+	
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+			
+			groupService.create(res, db, null, uid, groupName, groupPassword);
+			
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+		});
+	}
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
 });
 
-// GROUP
-app.post('user-group/create', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  
-  //...
-  
-  response.send(JSON.stringify({}));
+app.get('/groups', (req, res) => {
+	if (typeof(req.token) != "undefined"){
+	  
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+
+			groupService.getByUserId(res, db, uid);
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+		});
+	}else{
+		res.status(403).send('Not Authorization');
+	}
+});
+
+app.get('/groups/:id', (req, res) => {
+	if (typeof(req.token) != "undefined"){
+	  
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+			
+			var id = "";
+			if (typeof(req.params.id) != "undefined"){
+				id = req.params.id;
+			}
+			if (id){
+				groupService.getById(res, db, id, uid);
+			}
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+		});
+	}else{
+		res.status(403).send('Not Authorization');
+	}
+});
+
+// QUESTIONS
+app.post('/questions', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	 
+	var groupId = "";
+	if (typeof(req.body.group_id) != "undefined"){
+		groupId = req.body.group_id;
+	}
+	
+	if (!groupId){
+		res.setHeader('Content-Type', 'application/json');
+		response.send(JSON.stringify({"err": "Requires group"}));
+	}else{
+	
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			//var uid = decodedToken.uid;
+			
+			questionService.getByGroupId(res, db, groupId);
+			
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+		});
+	}
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
+});
+
+app.get('/questions/group/:group_id', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	 
+	var groupId = "";
+	if (typeof(req.params.group_id) != "undefined"){
+		groupId = req.params.group_id;
+	}
+	
+	if (!groupId){
+		res.setHeader('Content-Type', 'application/json');
+		response.send(JSON.stringify({"err": "Requires group"}));
+	}else{
+	
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+			
+			questionService.getByGroupId(res, db, groupId, uid);
+			
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+		});
+	}
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
+});
+
+// ANSWERS
+app.post('/answers', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	 
+	var questionId = "";
+	if (typeof(req.body.question_id) != "undefined"){
+		questionId = req.body.question_id;
+	}
+	
+	if (!questionId){
+		res.setHeader('Content-Type', 'application/json');
+		response.send(JSON.stringify({"err": "Requires question"}));
+	}else{
+	
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+			
+			answerService.getById(res, db, questionId);
+			
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+		});
+	}
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
 });
 
 // MESSAGES
@@ -89,11 +281,16 @@ app.post('/messages/create', (req, res) => {
 	  .then(function(decodedToken) {
 		var uid = decodedToken.uid;
 		var message = "";
+		var group_id = "";
+		
 		if (typeof(req.body.message) != "undefined"){
 		  message = req.body.message;
 		}
-		if (message){
-			messageService.create(res, db, uid, message);
+		if (typeof(req.body.group_id) != "undefined"){
+		  group_id = req.body.group_id;
+		}
+		if (message && group_id){
+			messageService.create(res, db, group_id, uid, message);
 		}
 	  }).catch(function(error) {
 		// Handle error
@@ -113,7 +310,30 @@ app.get('/messages', (req, res) => {
 		  .then(function(decodedToken) {
 			var uid = decodedToken.uid;
 
-			messageService.getByUserID(res, db, uid);
+			messageService.getByUserId(res, db, uid);
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+		});
+	}else{
+		res.status(403).send('Not Authorization');
+	}
+});
+
+app.get('/messages/group/:group_id', (req, res) => {
+	if (typeof(req.token) != "undefined"){
+	  
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+			
+			var group_id = "";
+			if (typeof(req.params.group_id) != "undefined"){
+				group_id = req.params.group_id;
+			}
+	
+			messageService.getByGroupId(res, db, group_id);
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);

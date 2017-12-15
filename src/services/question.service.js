@@ -1,21 +1,21 @@
 import commonService from './common.service';
 
-export const messageService = {
+export const questionService = {
     create,
     getAll,
     getById,
 	getByGroupId
 };
 
-function create(group_id, message) {
+function create(group_id, name) {
 	console.log("token: " + commonService.getToken());
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + commonService.getToken() },
-        body: JSON.stringify({group_id: group_id, message: message})
+        body: JSON.stringify({group_id: group_id, name: name})
     };
 
-    return fetch('/messages/create', requestOptions).then(commonService.handleResponse);
+    return fetch('/questions/create', requestOptions).then(commonService.handleResponse);
 }
 
 function getAll() {
@@ -24,16 +24,7 @@ function getAll() {
         headers: commonService.authHeader()
     };
 
-    return fetch('/messages', requestOptions).then(commonService.handleResponse);
-}
-
-function getByGroupId(group_id) {
-    const requestOptions = {
-        method: 'GET',
-        headers: commonService.authHeader()
-    };
-
-    return fetch('/messages/group/' + group_id, requestOptions).then(commonService.handleResponse);
+    return fetch('/questions', requestOptions).then(commonService.handleResponse);
 }
 
 function getById(id) {
@@ -42,7 +33,16 @@ function getById(id) {
         headers: commonService.authHeader()
     };
 
-    return fetch('/messages/' + id, requestOptions).then(commonService.handleResponse);
+    return fetch('/questions/' + id, requestOptions).then(commonService.handleResponse);
+}
+
+function getByGroupId(group_id) {
+    const requestOptions = {
+        method: 'GET',
+        headers: commonService.authHeader()
+    };
+
+    return fetch('/questions/group/' + group_id, requestOptions).then(commonService.handleResponse);
 }
 
 /*function handleResponse(response) {

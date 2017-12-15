@@ -39,12 +39,7 @@ let store = createStore(userReducer, applyMiddleware(logger, crashReporter));
 
 ReactDOM.render(
 				<Provider store={store}>
-					<Router>
-						<Switch>
-							<Route exact path="/" component={App} />
-							<Route path="/ctoken/:id" component={App} />
-						</Switch>
-					</Router>
+					<App />
 				</Provider>, 
 				document.getElementById('root'));
 

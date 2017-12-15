@@ -1,8 +1,9 @@
 //const commonService = require('./common.service');
 
-exports.create = function(res, db, uid, message){
+exports.create = function(res, db, group_id, uid, message){
 	// A message entry.
 	var messageData = {
+		group_id,
 		uid: uid,
 		message: message
 	};
@@ -27,7 +28,7 @@ exports.getAll = function (res, db, uid){
 	});
 };
 
-exports.getByUserID = function (res, db, uid){
+exports.getByUserId = function (res, db, uid){
 	db.ref('messages').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
 		
 		var jsonMessages = snapshot.val();
@@ -36,9 +37,29 @@ exports.getByUserID = function (res, db, uid){
 		for (var key in jsonMessages) {
 			if (jsonMessages.hasOwnProperty(key)) {
 				
-				console.log(key + " -> " + jsonMessages[key]);
+				//console.log(key + " -> " + jsonMessages[key]);
 				
 				arrResult.push({id: key, message: jsonMessages[key].message, uid: jsonMessages[key].uid});
+			}
+		}
+		
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify(arrResult));
+	});
+};
+
+exports.getByGroupId = function (res, db, group_id){
+	db.ref('messages').orderByChild("group_id").equalTo(group_id).once('value').then(function(snapshot) {
+		
+		var jsonData = snapshot.val();
+		var arrResult = [];
+		
+		for (var key in jsonData) {
+			if (jsonData.hasOwnProperty(key)) {
+				
+				//console.log(key + " -> " + jsonData[key]);
+				
+				arrResult.push({id: key, group_id: jsonData[key].group_id, uid: jsonData[key].uid, message: jsonData[key].message});
 			}
 		}
 		
@@ -58,3 +79,23 @@ exports.getById = function (res, db, id){
 		}
 	});
 }
+
+exports.getByGroupID = function (res, db, group_id){
+	db.ref('messages').orderByChild("group_id").equalTo(group_id).once('value').then(function(snapshot) {
+		
+		var jsonMessages = snapshot.val();
+		var arrResult = [];
+		
+		for (var key in jsonMessages) {
+			if (jsonMessages.hasOwnProperty(key)) {
+				
+				//console.log(key + " -> " + jsonMessages[key]);
+				
+				arrResult.push({id: key, message: jsonMessages[key].message, uid: jsonMessages[key].uid, group_id: jsonMessages[key].group_id});
+			}
+		}
+		
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify(arrResult));
+	});
+};
