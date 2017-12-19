@@ -211,6 +211,40 @@ app.post('/questions', (req, res) => {
   }
 });
 
+app.post('/questions/create', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	 
+	var name = "";
+	if (typeof(req.body.name) != "undefined"){
+		name = req.body.name;
+	}
+	
+	var group_id = "";
+	if (typeof(req.body.group_id) != "undefined"){
+		group_id = req.body.group_id;
+	}
+	if (!name || !group_id){
+		res.setHeader('Content-Type', 'application/json');
+		response.send(JSON.stringify({"err": "Requires question name"}));
+	}else{
+	
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+			
+			questionService.create(res, db, group_id, uid, name);
+			
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+		});
+	}
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
+});
+
 app.get('/questions/group/:group_id', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	 

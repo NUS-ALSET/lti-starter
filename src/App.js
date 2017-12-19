@@ -35,8 +35,7 @@ const config = {
 firebase.initializeApp(config);
 
 class App extends Component {
-	
-	ctoken = null;
+
 	constructor(props) {
 		super(props);
 		var _this = this;
@@ -54,13 +53,15 @@ class App extends Component {
 			
 			currentUser.getIdToken().then(function(token){	
 				_this.props.dispatch(actions.setSignedIn(true));
+				_this.props.dispatch(actions.setDisplayName(displayName));
 				_this.props.dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
+				localStorage.removeItem('user');
 				localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 				
 				_this.setState({signedIn:true});
 				_this.setState({displayName:displayName});
 				_this.setState({uid:uid});
-				
+				_this.setState({loading:false});
 				// Verify Token, Auto create group and member if any
 				//userService.verifyToken(token);
 			});
@@ -69,58 +70,39 @@ class App extends Component {
 		  
 			// User is signed out.
 			_this.props.dispatch(actions.setSignedIn(false));
+			_this.props.dispatch(actions.setDisplayName(''));
 			_this.props.dispatch(actions.setUser({}));
 			localStorage.removeItem('user');
 			
 			_this.setState({signedIn:false});
 			_this.setState({displayName:null});
 			_this.setState({uid:null});
-			console.log("signed out");
+			_this.setState({loading:false});
 		  }
 		});
 	}
 
 	state = {
-		signedIn: false, // Local signed-in state.
-		displayName: '',
+		loading: true,
+		signedIn: false,
 		messages: []
 	};
 	
-	 componentDidMount() {
-		 var _this = this;
-		 console.log("componentDidMount");
-		 /*
-		 // Load Messages List
-		 messageService.getAll().then(function(res){
-			 console.log("returned messages");
-			 console.log(res);
-			 _this.setState({messages: res});
-		 });
-		 */
-	 }
-  
-  handleSignOut = () => {
-	/*firebase.auth().signOut().then(function(){
-		// Initialize the FirebaseUI Widget using Firebase.
-		//var ui = new firebaseui.auth.AuthUI(firebase.auth());
-		// The start method will wait until the DOM is loaded.
-		//ui.start('#firebaseui-auth-container', uiConfig);
-		
-		// User is signed out.
-		this.props.dispatch(actions.setSignedIn(false));
-		this.props.dispatch(actions.setUser({}));
-		localStorage.removeItem('user');
-		
-		this.setState({signedIn:false});
-		this.setState({displayName:null});
-		this.setState({uid:null});
-		console.log("Signed Out");
-			
-	}).catch(function(error){
-		// An error happended.
-	});*/
+	componentDidMount() {
+		// Do something if needed
+	}
+
+	componentWillReceiveProps(){
+		// Do something if needed
+	}
+	
+  hasSignedIn = () =>{
+	  if (typeof(this.state.signedIn) != "undefined"){
+		  return this.state.signedIn;
+	  }
+	  
+	  return false;
   }
-  
   handleMessageChange = (e) =>{
 	  this.setState({newMessageEntry: e.target.value});
   }
@@ -155,6 +137,13 @@ class App extends Component {
 	}
 	
   render() {
+	
+	if (this.state.loading){
+		return (
+			<div className="App">Loading...</div>
+		);
+	}
+	
 	return (
       <div className="App">
 		<Router>
@@ -164,6 +153,7 @@ class App extends Component {
 				<MainLayoutRoute path="/group/:id" component={GroupDetails} />
 				<Route path="/signin" component={SignIn} />
 				<Route path="/ctoken/:id" component={SignIn} />
+				<Route path="/signout" component={SignOut} />
 			</Switch>
 		</Router>
 	  </div>
@@ -172,10 +162,13 @@ class App extends Component {
 }
 
 function mapStateToProps(state) {
+	
+	console.log("mapStateToProps");
 	const signedIn = state.signedIn;
 	const user = state.user;
+	const displayName = state.displayName;
 	
-	return {signedIn, user}
+	return {signedIn, user, displayName}
 }
 
 export default connect(mapStateToProps)(App);
@@ -215,12 +208,11 @@ class SignIn extends Component {
 						
 						currentUser.getIdToken().then(function(token){	
 							_this.props.dispatch(actions.setSignedIn(true));
+							_this.props.dispatch(actions.setDisplayName(displayName));
 							_this.props.dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
 							localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 							
 							_this.setState({signedIn:true});
-							_this.setState({displayName:displayName});
-							_this.setState({uid:uid});
 							
 							// Verify Token, Auto create group and member if any
 							userService.verifyToken(token);
@@ -234,8 +226,6 @@ class SignIn extends Component {
 						localStorage.removeItem('user');
 						
 						_this.setState({signedIn:false});
-						_this.setState({displayName:null});
-						_this.setState({uid:null});
 						console.log("signed out");
 					  }
 					});
@@ -246,7 +236,6 @@ class SignIn extends Component {
 
 	state = {
 		signedIn: false, // Local signed-in state.
-		displayName: ''
 	};
 	
 	 componentDidMount() {
@@ -274,12 +263,11 @@ class SignIn extends Component {
 			
 			currentUser.getIdToken().then(function(token){
 				this.props.dispatch(actions.setSignedIn(true));
+				this.props.dispatch(actions.setDisplayName(displayName));
 				this.props.dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
 				localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 				
 				this.setState({signedIn:true});
-				this.setState({displayName:displayName});
-				this.setState({uid:uid});
 				
 				// Verify Token, Auto create group and member if any
 				userService.verifyToken(token);
@@ -301,4 +289,33 @@ class SignIn extends Component {
 		<Redirect to={{ pathname: '/signin' }} />
 	);
   }
+}
+
+
+class SignOut extends Component {
+	constructor(props) {
+		super(props);
+		
+		firebase.auth().signOut().then(function(){
+			// Initialize the FirebaseUI Widget using Firebase.
+			//var ui = new firebaseui.auth.AuthUI(firebase.auth());
+			// The start method will wait until the DOM is loaded.
+			//ui.start('#firebaseui-auth-container', uiConfig);
+			
+			// User is signed out.
+			this.props.dispatch(actions.setSignedIn(false));
+			this.props.dispatch(actions.setDisplayName(''));
+			this.props.dispatch(actions.setUser({}));
+			localStorage.removeItem('user');
+				
+		}).catch(function(error){
+			// An error happended.
+		});
+	}
+	
+	render() {
+		return (
+			<SignIn />
+		)
+	}
 }

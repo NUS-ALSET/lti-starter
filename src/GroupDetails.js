@@ -41,12 +41,14 @@ class GroupDetails extends Component {
 							_this.setState({isAccess: true});
 						}
 					}
+					_this.setState({loading: false});
 				});
 			}
 		}
 	}
 
 	state = {
+		loading: true,
 		isAccess: false,
 		group: {},
 		messages: [],
@@ -136,7 +138,25 @@ class GroupDetails extends Component {
 	  );
 	}
 	
+  Answer = (props) =>{
+	  const content = props.entries.map((post) =>
+		<div class="row answer-row" key={post.id}>
+			<div class="col-md-2">{post.uid} answered: </div>
+			<div class="col-md-10">post.content</div>
+		</div>
+	  );
+	  return (
+		<div>
+		{content}
+		</div>
+	  );
+  }
   render() {
+	if (this.state.loading){
+		return (
+			<div>Loading...</div>
+		);
+	}
 	if (!this.state.isAccess){
 		return (
 			<div>

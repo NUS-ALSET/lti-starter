@@ -19,41 +19,54 @@ class MainHeader extends Component {
 	}
 
 	state = {
-		signedIn: false, // Local signed-in state.
 		displayName: ''
 	};
 	
-	 componentDidMount() {
-		var user = JSON.parse(localStorage.getItem('user'));
+	componentDidMount() {
+	 
+	 console.log("MainHeader componentWillReceiveProps");
+	console.log(this.props);
+	if (typeof(this.props.displayName) != "undefined"){
 		
-		if (user && user.token){
-			this.setState({signedIn: true});
-			this.setState({displayName: user.displayName});
-		}
-	 }
-  
-  handleSignOut = () => {
-	  console.log("Handle Sign Out");
-  }
+		this.setState({displayName: this.props.displayName.displayName});
+	}
+		
+	/*var user = JSON.parse(localStorage.getItem('user'));
+
+	if (user && user.token){
+		this.setState({displayName: user.displayName});
+	}*/
+	}
 	
-  render() {
-	return (
-		<div>
-		<header className="App-header">
-		  <div><img src={logo} className="App-logo" alt="logo" /></div>
-		  <div>Welcome {this.state.displayName} </div>
-		  <button name="btnSignOut" id="btnSignOut" onClick={this.handleSignOut}>Sign Out</button>
-		</header>
-		</div>
-    );
-  }
+	componentWillReceiveProps(){
+		console.log("componentWillReceiveProps");
+		console.log(this.props);
+		if (typeof(this.props.displayName) != "undefined"){
+			
+			this.setState({displayName: this.props.displayName.displayName});
+		}
+	}
+	
+	render() {
+		return (
+			<div>
+			<header className="App-header">
+			  <div><img src={logo} className="App-logo" alt="logo" /></div>
+			  <div>Welcome {this.state.displayName} </div>
+			  <Link to={`/signout`}>Sign Out</Link>
+			</header>
+			</div>
+		);
+	}
 }
 
 function mapStateToProps(state) {
 	const signedIn = state.signedIn;
 	const user = state.user;
+	const displayName = state.displayName;
 	
-	return {signedIn, user}
+	return {signedIn, user, displayName}
 }
 
 export default connect(mapStateToProps)(MainHeader);
+

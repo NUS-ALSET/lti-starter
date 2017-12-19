@@ -32,3 +32,29 @@ exports.getGroupMemberByID = function (db, group_id, uid, callback){
 		//..
 	});
 };
+
+exports.isInstructor = function (db, uid){
+	db.ref('instructors').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
+		
+		if (!snapshot){
+			return false;
+		}
+		var jsonData = snapshot.val();
+		
+		if (typeof(jsonData.uid) != "undefined"){
+			if (jsonData.uid == uid && jsonData.isInstructor == true){
+				return true;
+			}
+		}
+		
+		for (var key in jsonData) {
+			if (jsonData.hasOwnProperty(key)) {
+				console.log("value: " + jsonData[key].uid);
+				if (jsonData[key].uid == uid && jsonData[key].isInstructor == true){
+					return true;
+				}
+			}
+		}
+		return false;
+	})
+}

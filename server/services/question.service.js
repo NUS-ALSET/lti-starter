@@ -1,6 +1,9 @@
 //const commonService = require('./common.service');
+const groupService = require('./group.service');
+const userService = require('./user.service');
+const answerService = require('./answer.service');
 
-exports.create = function (res, db, group_id, uid, name, password){
+exports.create = function (res, db, group_id, uid, name){
 	
 	// Get a key for a new question.
 	var newKey = db.ref().child('questions').push().key;
@@ -48,18 +51,35 @@ exports.getById = function (res, db, id){
 }
 
 exports.getByGroupId = function (res, db, group_id, uid){
-	db.ref('questions').orderByChild("group_id").equalTo(group_id).once('value').then(function(snapshot) {
-		var jsonData = snapshot.val();
-		var arrResult = [];
+	groupService.isAccess(db, group_id, uid).then(function(isAccess){
 		
-		for (var key in jsonData) {
-			if (jsonData.hasOwnProperty(key)) {
+		if (isAccess == true){
+			userService.isInstructor(db, uid).then(function(isInstructor){
 				
-				arrResult.push({id: key, group_id: jsonData[key].group_id, name: jsonData[key].name, uid: jsonData[key].uid});
-			}
+				db.ref('questions').orderByChild("group_id").equalTo(group_id).once('value').then(function(snapshot) {
+					var jsonData = snapshot.val();
+					var arrResult = [];
+					var arrAnswers = [];
+					
+					for (var key in jsonData) {
+						if (jsonData.hasOwnProperty(key)) {
+							arrAnswers = [];
+							
+							if (isInstructor == true){
+								// Load all answers of the question id
+								answerService.getByQuestionId(db, key);
+							}else{
+								// Only load the current user logged in
+								answerService.getByQuestionId(db, key, uid);
+							}
+							arrResult.push({id: key, group_id: jsonData[key].group_id, name: jsonData[key].name, uid: jsonData[key].uid});
+						}
+					}
+					
+					res.setHeader('Content-Type', 'application/json');
+					res.send(JSON.stringify(arrResult));
+				});
+			});
 		}
-		
-		res.setHeader('Content-Type', 'application/json');
-		res.send(JSON.stringify(arrResult));
 	});
 };

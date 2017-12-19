@@ -36,9 +36,21 @@ function user(state = {}, action) {
   }
 }
 
+function displayName(state = {}, action) {
+  switch (action.type) {
+    case actionTypes.DISPLAY_NAME:
+      return {
+        displayName: action.displayName,
+      };
+    default:
+      return state
+  }
+}
+
 const userReducer = combineReducers({
   signedIn,
-  user
+  user,
+  displayName
 })
 
 export default userReducer;

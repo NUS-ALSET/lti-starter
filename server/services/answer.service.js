@@ -38,11 +38,39 @@ exports.getById = function (res, db, id){
 	});
 }
 
-exports.getByUserID = function (res, db, id, uid){
+exports.getByUserId = function (res, db, id, uid){
 	db.ref('answers/' + id).orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
 		var jsonData = snapshot.val();
 
 		res.setHeader('Content-Type', 'application/json');
 		res.send(JSON.stringify(jsonData));
 	});
+};
+
+exports.getByQuestionId = function (db, question_id, uid){
+	var arrResult = [];
+	
+	if (uid){
+		db.ref('answers/' + question_id).orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
+			var jsonData = snapshot.val();
+			
+			for (var key in jsonData) {
+				if (jsonData.hasOwnProperty(key)) {
+					arrResult.push({id: key, content: jsonData[key].content, uid: jsonData[key].uid});
+				}
+			}
+			return arrResult;
+		});
+	}else{
+		db.ref('answers/' + question_id).once('value').then(function(snapshot) {
+			var jsonData = snapshot.val();
+			
+			for (var key in jsonData) {
+				if (jsonData.hasOwnProperty(key)) {
+					arrResult.push({id: key, content: jsonData[key].content, uid: jsonData[key].uid});
+				}
+			}
+			return arrResult;
+		});
+	}
 };

@@ -133,6 +133,32 @@ exports.getById = function (res, db, id, uid){
 	
 }
 
+exports.isAccess = function (db, id, uid){
+	db.ref('group_members/' + id).once('value').then(function(snapshot) {
+		
+		if (!snapshot){
+			return false;
+		}
+		var jsonData = snapshot.val();
+		
+		if (typeof(jsonData.uid) != "undefined"){
+			if (jsonData.uid == uid){
+				return true;
+			}
+		}
+		
+		for (var key in jsonData) {
+			if (jsonData.hasOwnProperty(key)) {
+				console.log("value: " + jsonData[key].uid);
+				if (jsonData[key].uid == uid){
+					return true;
+				}
+			}
+		}
+		return false;
+	})
+}
+
 exports.addMember = function (res, db, group_id, uid, callback){
 	// A Member entry.
 	var memberData = {

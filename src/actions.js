@@ -26,4 +26,11 @@ function setUser(user) {
   };
 };
 
-export default {setSignedIn, setUser};
+function setDisplayName(displayName) {
+  return {
+    type: actionTypes.DISPLAY_NAME,
+    displayName
+  };
+};
+
+export default {setSignedIn, setUser, setDisplayName};
