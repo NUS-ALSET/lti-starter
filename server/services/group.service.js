@@ -133,7 +133,7 @@ exports.getById = function (res, db, id, uid){
 	
 }
 
-exports.isAccess = function (db, id, uid){
+exports.isAccess = async function (db, id, uid){
 	db.ref('group_members/' + id).once('value').then(function(snapshot) {
 		
 		if (!snapshot){

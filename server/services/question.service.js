@@ -51,10 +51,12 @@ exports.getById = function (res, db, id){
 }
 
 exports.getByGroupId = function (res, db, group_id, uid){
+
 	groupService.isAccess(db, group_id, uid).then(function(isAccess){
-		
-		if (isAccess == true){
-			userService.isInstructor(db, uid).then(function(isInstructor){
+
+		//if (isAccess == true){
+			//userService.isInstructor(db, uid).then(function(isInstructor){
+				isInstructor = false;
 				
 				db.ref('questions').orderByChild("group_id").equalTo(group_id).once('value').then(function(snapshot) {
 					var jsonData = snapshot.val();
@@ -67,10 +69,10 @@ exports.getByGroupId = function (res, db, group_id, uid){
 							
 							if (isInstructor == true){
 								// Load all answers of the question id
-								answerService.getByQuestionId(db, key);
+								//answerService.getByQuestionId(db, key);
 							}else{
 								// Only load the current user logged in
-								answerService.getByQuestionId(db, key, uid);
+								//answerService.getByQuestionId(db, key, uid);
 							}
 							arrResult.push({id: key, group_id: jsonData[key].group_id, name: jsonData[key].name, uid: jsonData[key].uid});
 						}
@@ -79,7 +81,7 @@ exports.getByGroupId = function (res, db, group_id, uid){
 					res.setHeader('Content-Type', 'application/json');
 					res.send(JSON.stringify(arrResult));
 				});
-			});
-		}
+			//});
+		//}
 	});
 };
