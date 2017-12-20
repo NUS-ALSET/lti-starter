@@ -10,11 +10,13 @@ import {
   Redirect,
   withRouter,
   Switch
-} from 'react-router-dom';
+} from 'react-router';
+
+import ReactModal from 'react-modal';
 
 import actions from './actions';
 
-import {userService, messageService, groupService, questionService} from './services';
+import {userService, messageService, groupService, questionService, answerService} from './services';
 
 class GroupDetails extends Component {
 	
@@ -45,6 +47,18 @@ class GroupDetails extends Component {
 				});
 			}
 		}
+		
+		this.handleOpenModal = this.handleOpenModal.bind(this);
+		this.handleCloseModal = this.handleCloseModal.bind(this);
+	}
+	
+	handleOpenModal (question) {
+		
+		this.setState({selected_question: question, showModal: true });
+	}
+
+	handleCloseModal () {
+		this.setState({ showModal: false });
 	}
 
 	state = {
@@ -52,7 +66,10 @@ class GroupDetails extends Component {
 		isAccess: false,
 		group: {},
 		messages: [],
-		questions: []
+		questions: [],
+		showModal: false,
+		
+		selected_question: {id: null, name: null}
 	};
 	
 	 componentDidMount() {
@@ -108,7 +125,7 @@ class GroupDetails extends Component {
 	
 	handleQuestionChange = (e) =>{
 	  this.setState({newQuestionEntry: e.target.value});
-  }
+	}
   
   createQuestion = () =>{
 	  if (this.state.newQuestionEntry){
@@ -123,13 +140,29 @@ class GroupDetails extends Component {
 	  }
   }
   
+  handleAnswerClick = (question, e) =>{
+	  this.handleOpenModal(question);
+  }
+  
   Question = (props) =>{
-	  const content = props.entries.map((post) =>
-		<div class="row" key={post.id}>
-		  <div class="col-md-4">{post.id}</div>
-		  <div class="col-md-4">{post.uid}</div>
-		  <div class="col-md-4">{post.name}</div>
-		</div>
+	  
+	  
+	  const content = props.entries.map((post) =>{
+		  
+		  let boundAnswerClick = this.handleAnswerClick.bind(this, post);
+		  
+		  return(
+			<div>
+				<div class="row" key={post.id}>
+				  <div class="col-md-12">{post.name}</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12"><button key={post.id} type="button" name="btnAnswerModal" onClick={boundAnswerClick}>Answer Now</button></div>
+				</div>
+				<this.Answer entries={post.answer_data} />
+			</div>
+			)
+		}
 	  );
 	  return (
 		<div>
@@ -137,12 +170,12 @@ class GroupDetails extends Component {
 		</div>
 	  );
 	}
-	
+
   Answer = (props) =>{
 	  const content = props.entries.map((post) =>
 		<div class="row answer-row" key={post.id}>
-			<div class="col-md-2">{post.uid} answered: </div>
-			<div class="col-md-10">post.content</div>
+			<div class="col-md-4">{post.uid}</div>
+			<div class="col-md-8">{post.content}</div>
 		</div>
 	  );
 	  return (
@@ -151,6 +184,24 @@ class GroupDetails extends Component {
 		</div>
 	  );
   }
+  
+  handleAnswerChange = (e) =>{
+	  this.setState({newAnswerEntry: e.target.value});
+	}
+  
+  createAnswer = () =>{
+	  if (this.state.newAnswerEntry){
+		var _this = this;  
+		answerService.create(this.id, this.state.newAnswerEntry).then(function(res){
+			if (typeof(res.content) != "undefined"){
+				// Add the new answer to the state of current answer List
+				//_this.state.questions.push(res);
+				//_this.setState({questions: _this.state.questions});
+			}
+		});
+	  }
+  }
+  
   render() {
 	if (this.state.loading){
 		return (
@@ -173,7 +224,7 @@ class GroupDetails extends Component {
 				</div>
 				<div class="row">
 					<div class="col-md-2">Group Name:</div>
-					<div class="col-md-2">Hello</div>
+					<div class="col-md-2"></div>
 				</div>
 			</div>
 			<div class="row">
@@ -194,6 +245,35 @@ class GroupDetails extends Component {
 					<this.Question entries={this.state.questions} />
 				</div>
 			</div>
+			
+			<ReactModal 
+			   isOpen={this.state.showModal}
+			   contentLabel="Answer A Question"
+			   onRequestClose={this.handleCloseModal}
+			   shouldCloseOnOverlayClick={false}
+			>
+				<button onClick={this.handleCloseModal}>Close</button>
+				
+				<div class="row">
+					<div class="col-md-12">
+						<h1>{this.state.selected_question.name}</h1>
+					</div>
+				</div>
+				
+				<div class="row">
+					<div class="col-md-12">
+						<textarea width="400px" height="200px" onChange={this.handleAnswerChange}/>
+					</div>
+				</div>
+				
+				<div class="row">
+					<div class="col-md-12">
+						<button type="button" name="btnASend" id="btnASend" onClick={this.createAnswer}>Submit</button>
+					</div>
+				</div>
+				
+			</ReactModal>
+		
 		</div>
     );
   }

@@ -54,8 +54,8 @@ exports.getByGroupId = function (res, db, group_id, uid){
 
 	groupService.isAccess(db, group_id, uid).then(function(isAccess){
 
-		//if (isAccess == true){
-			//userService.isInstructor(db, uid).then(function(isInstructor){
+		if (isAccess == true){
+			userService.isInstructor(db, uid).then(function(isInstructor){
 				isInstructor = false;
 				
 				db.ref('questions').orderByChild("group_id").equalTo(group_id).once('value').then(function(snapshot) {
@@ -66,22 +66,26 @@ exports.getByGroupId = function (res, db, group_id, uid){
 					for (var key in jsonData) {
 						if (jsonData.hasOwnProperty(key)) {
 							arrAnswers = [];
-							
+							var _uid = uid;
 							if (isInstructor == true){
 								// Load all answers of the question id
-								//answerService.getByQuestionId(db, key);
-							}else{
-								// Only load the current user logged in
-								//answerService.getByQuestionId(db, key, uid);
+								_uid = null;
 							}
-							arrResult.push({id: key, group_id: jsonData[key].group_id, name: jsonData[key].name, uid: jsonData[key].uid});
+							
+							answerService.getByQuestionId(db, key, _uid).then(function(data){
+								console.log("key: " + key);
+								console.log("_uid: " + _uid);
+								console.log(data);
+							});
+								
+							arrResult.push({id: key, group_id: jsonData[key].group_id, name: jsonData[key].name, uid: jsonData[key].uid, answer_data: [{uid: 124, content: 'rock'},{uid: 111, content: 'tay'} ]});
 						}
 					}
 					
 					res.setHeader('Content-Type', 'application/json');
 					res.send(JSON.stringify(arrResult));
 				});
-			//});
-		//}
+			});
+		}
 	});
 };

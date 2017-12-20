@@ -134,8 +134,8 @@ exports.getById = function (res, db, id, uid){
 }
 
 exports.isAccess = async function (db, id, uid){
-	db.ref('group_members/' + id).once('value').then(function(snapshot) {
-		
+	const data = await db.ref('group_members/' + id).once('value').then(function(snapshot) {
+		console.log(snapshot.val());
 		if (!snapshot){
 			return false;
 		}
@@ -156,7 +156,9 @@ exports.isAccess = async function (db, id, uid){
 			}
 		}
 		return false;
-	})
+	});
+	
+	return data;
 }
 
 exports.addMember = function (res, db, group_id, uid, callback){

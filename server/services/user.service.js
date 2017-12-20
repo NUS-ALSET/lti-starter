@@ -1,3 +1,4 @@
+var async = require("async");
 //const commonService = require('./common.service');
 
 exports.addGroupMember = function (db, group_id, uid, callback){
@@ -33,8 +34,8 @@ exports.getGroupMemberByID = function (db, group_id, uid, callback){
 	});
 };
 
-exports.isInstructor = function (db, uid){
-	db.ref('instructors').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
+exports.isInstructor = async function (db, uid){
+	const data = await db.ref('instructors').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
 		
 		if (!snapshot){
 			return false;
@@ -56,5 +57,7 @@ exports.isInstructor = function (db, uid){
 			}
 		}
 		return false;
-	})
+	});
+	
+	return data;
 }
