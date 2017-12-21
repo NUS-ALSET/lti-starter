@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Firebase LTI Login</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/live/4.1/firebase.js"></script>
+	<script type="text/javascript">
+	var config = {
+	  apiKey: "{{config.apiKey}}",
+	  authDomain: "{{config.authDomain}}",
+	  databaseURL: "{{config.databaseURL}}",
+	  storageBucket: "{{config.storageBucket}}"
+	};
+	firebase.initializeApp(config);
+	
+	// Get a reference to the database service
+	var database = firebase.database();
+  
+	</script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/2.4.1/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/2.4.1/firebaseui.css" />
+	<script type="text/javascript">
+      // FirebaseUI config.
+      var uiConfig = {
+		signInFlow: 'popup',
+        signInSuccessUrl: '',
+		callbacks: {
+          signInSuccess: function(currentUser, credential, redirectUrl) {
+		  
+			if (currentUser){
+				var displayName = currentUser.displayName;
+				var email = currentUser.email;
+				var emailVerified = currentUser.emailVerified;
+				var photoURL = currentUser.photoURL;
+				var uid = currentUser.uid;
+				var phoneNumber = currentUser.phoneNumber;
+				var providerData = currentUser.providerData;
+				currentUser.getIdToken().then(function(accessToken){
+					document.getElementById('sign-in-status').textContent = 'Signed in';
+					document.getElementById("js-firebase-account-details").textContent = JSON.stringify({
+						displayName: displayName,
+						email: email,
+						emailVerified: emailVerified,
+						phoneNumber: phoneNumber,
+						photoURL: photoURL,
+						uid: uid,
+						accessToken: accessToken,
+						providerData: providerData
+					}, null, ' ');
+					
+					// Custom Authentication
+					document.getElementById("js-sign-in-custom-auth").textContent = "In Progress ...";
+					$.ajax({
+					  method: "PUT",
+					  url: document.location,
+					  dataType: "json",
+					  data: { user_id: "{{body.user_id}}", oauth_consumer_key: "{{config.consumerKey}}", "accessToken": accessToken, "uid": uid }
+					})
+						.done(function( data ) {
+							console.log("Completed");
+							console.log(data);
+							document.getElementById("js-firebase-custom-auth-details").textContent = JSON.stringify(data);
+							document.getElementById("js-sign-in-custom-auth").textContent = "Completed";
+							
+							console.log("The custom token is already created");
+							
+							// Sign in with custom token
+							firebase.auth().signInWithCustomToken(data.customToken).catch(function(error) {
+							  // Handle Errors here.
+							  var errorCode = error.code;
+							  var errorMessage = error.message;
+							  console.log("signInWithCustomToken");
+							  console.log(errorCode);
+							  console.log(errorMessage);
+							  // ...
+							});
+			
+						})
+					  
+						.fail(function( jqXHR, textStatus ) {
+							console.log( "Request failed: " + textStatus );
+							document.getElementById("js-sign-in-custom-auth").textContent = "Incomplete";
+						});
+					  
+				});
+				
+			}else{
+				document.getElementById('sign-in-status').textContent = 'Signed out';
+			}
+            // Return type determines whether we continue the redirect automatically
+            // or whether we leave that to developer to handle.
+            return false;
+          },
+          uiShown: function() {
+            // The widget is rendered.
+            // Hide the loader.
+            //document.getElementById('loader').style.display = 'none';
+          }
+        },
+        signInOptions: [
+          // Leave the lines as is for the providers you want to offer your users.
+          firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+          //firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+          //firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+          //firebase.auth.GithubAuthProvider.PROVIDER_ID,
+          //firebase.auth.EmailAuthProvider.PROVIDER_ID,
+          //firebase.auth.PhoneAuthProvider.PROVIDER_ID
+        ],
+        // Terms of service url.
+        tosUrl: '<your-tos-url>'
+      };
+
+      // Initialize the FirebaseUI Widget using Firebase.
+      //var ui = new firebaseui.auth.AuthUI(firebase.auth());
+      // The start method will wait until the DOM is loaded.
+      //ui.start('#firebaseui-auth-container', uiConfig);
+    </script>
+	<script type="text/javascript">
+		var idTtoken = "";
+		var lti_custom_token = "{{accessToken}}";
+		var is_valid = {{is_valid}};
+		
+		function signInWithLTI(){
+			{{#if is_valid}}
+			// Sign in with custom token
+			firebase.auth().signInWithCustomToken(lti_custom_token).catch(function(error) {
+			  // Handle Errors here.
+			  var errorCode = error.code;
+			  var errorMessage = error.message;
+			  console.log("signInWithCustomToken");
+			  console.log(errorCode);
+			  console.log(errorMessage);
+			  // ...
+			});
+			{{/if}}
+		}
+		
+		// Auto Sign In With LTI if LTI is valid
+		{{#if is_valid}}
+			signInWithLTI();
+		{{/if}}
+		
+		$(function(){
+			disableGoogleLogin();
+			
+			firebase.auth().onAuthStateChanged(function(currentUser) {
+			  if (currentUser) {
+			  
+				// User is signed in.
+				var isAnonymous = currentUser.isAnonymous;
+				var uid = currentUser.uid;
+				console.log("uid:" + uid);
+				console.log(currentUser);
+				
+				var displayName = currentUser.displayName;
+				
+				var providerData = currentUser.providerData;
+				
+				// Show Sign in status
+				document.getElementById('sign-in-status').textContent = 'Signed in';
+				currentUser.getIdToken().then(function(token){
+					
+					idTtoken = token;
+					
+					// If it's a lti sign in
+					if (providerData.length == 0){
+						$(".class-lti").show();
+						$(".class-provider").hide();
+					}else{
+						// Provider signed in
+						document.getElementById('sign-in-status').textContent = 'Signed In with Google';
+						
+						// Set display name
+						$("#js-signed-in-display-name").text(displayName);
+						
+						$(".class-lti").hide();
+						$(".class-provider").show();
+					}
+					
+					if (providerData.length > 0 || is_valid){
+						// Hide sign in buttons
+						$("#js-signgin-container").hide();
+						
+						// Show user's content block
+						$("#js-user-container").show();
+									
+						// Load Messages List
+						viewMessagesList();
+					}
+				});
+				
+			  } else {
+			  
+				// User is signed out.
+				// Show sign in status
+				document.getElementById('sign-in-status').textContent = 'Signed out';
+				console.log("signed out");
+			  }
+			});
+		});
+		
+		function writeNewMessage(message) {
+			
+			// Validate parematers
+			if(!message){
+				console.log("Requires Message");
+				
+				// Show an error message if  needed
+				 return false;
+			}
+			
+			if (!idTtoken){
+				console.log("Empty Token");
+				
+				// Do something if needed.
+				
+				return false;
+			}
+			
+			$.ajax({
+			  method: "PUT",
+			  url: document.location,
+			  dataType: "json",
+			  data: { message: message, "accessToken": idTtoken}
+			})
+			.done(function( data ) {
+				console.log("Done: Write a new message");
+				$("#js-firebase-messages").empty().append(JSON.stringify(data));
+			})
+
+			.fail(function( jqXHR, textStatus ) {
+				console.log( "Request failed: " + textStatus );
+			});
+		}
+		
+		function viewMessagesList(){
+			if (!idTtoken){
+				console.log("Empty Token");
+				
+				// Show error message if needed.
+				
+				return;
+			}
+			
+			$.ajax({
+			  method: "PUT",
+			  url: document.location,
+			  dataType: "json",
+			  data: {"accessToken": idTtoken}
+			})
+			.done(function( data ) {
+				console.log("Done: Messages List");
+				$("#js-firebase-messages").empty().append(JSON.stringify(data));
+			})
+		  
+			.fail(function( jqXHR, textStatus ) {
+				console.log( "Request failed: " + textStatus );
+			});
+		}
+		
+		function signOut(){
+			firebase.auth().signOut().then(function(){
+				document.getElementById('sign-in-status').textContent = 'Signed out';
+				$("#js-user-container").hide();
+				
+				// Initialize the FirebaseUI Widget using Firebase.
+				//var ui = new firebaseui.auth.AuthUI(firebase.auth());
+				// The start method will wait until the DOM is loaded.
+				//ui.start('#firebaseui-auth-container', uiConfig);
+				
+				$("#js-signgin-container").show();
+				
+			}).catch(function(error){
+				// An error happened.
+			});
+			
+		}
+		
+		function signInWithPopup(){
+			window.open(document.location + "/signin");
+		}
+		
+		function disableGoogleLogin(){
+
+			database.ref('settings/disableGoogleLogin').once('value').then(function(snapshot) {
+				var disableGoogleLogin = snapshot.val();
+				if (disableGoogleLogin){
+					$("#btnSignInWithPopup").hide();
+				}
+			});
+		}
+	</script>
+  </head>
+  <body>
+	<style>
+		.class-head{
+			padding-top: 10px;
+			font-weight: bold;
+		}
+		.class-sub{
+			padding-left: 15px;
+		}
+	</style>
+    <h1>Firebase LTI Login</h1>
+	
+	<div class="class-lti">
+		<div class="class-head">POST PARAMETERS</div>
+		<div class="class-sub"><span>oauth_consumer_key: </span><span>{{body.oauth_consumer_key}}</span></div>
+		<div class="class-sub"><span>user_id: </span><span>{{body.user_id}}</span></div>
+		<div class="class-sub"><span>oauth_signature: </span><span>{{body.oauth_signature}}</span></div>
+		
+		<div class="class-head">IMS-LTI VALIDATION</div>
+		{{#if err}}
+		<div class="class-sub">
+			<span style="color: red">
+				{{err}}
+			</span>
+		</div>
+		{{/if}}
+		<div class="class-sub"><strong><span>Is Valid: </span><span style="color: blue">{{is_valid}}</span></strong></div>
+	</div>
+	
+	<div class="class-sub"><span>Sign in status: </span><strong><span id="sign-in-status" color="blue"></span></strong></div>
+	<div id="js-signgin-container" style="display:{{#if is_valid}}none{{/if}}">
+		{{#if is_valid}}
+		<button type="button" name="btnSignInWithLTI" id="btnSignInWithLTI" onclick="signInWithLTI();">Sign In with LTI</button>
+		{{/if}}
+		<button type="button" name="btnSignInWithPopup" id="btnSignInWithPopup" onclick="signInWithPopup();">Sign In with Google</button>
+	</div>
+	
+	
+	
+	<div id="js-user-container" style="display: {{#if is_valid}}{{else}}none{{/if}}">
+		<div class="class-lti">
+			{{#if is_valid}}
+			<div class="class-head" style="color: green"><span>Welcome {{displayName}}</span></div>
+			{{#if roles}}
+			<div><span>Roles: </span><span>{{roles}}</span></div>
+			{{/if}}
+			{{/if}}
+		</div>
+		
+		{{#if is_valid}}
+		<div class="class-lti" style="border: 1px solid black; color: #000; margin: 5px; padding: 5px; background-color: yellow;">
+			<div><strong>Class ID</strong>/Context ID: {{body.context_id}}</div>
+			<div>Context title: {{body.context_title}}</div>
+			<div>Context label: {{body.context_label}}</div>
+			<div>Resource ID: {{body.resource_link_id}}</div>
+			<div>Resource title: {{body.resource_link_title}}</div>
+			<div><button name="btnRedirectToReact" id="btnRedirectToReact" onclick="window.location='/group/{{body.context_id}}'">Redirect to React App</button></div>
+		</div>
+		{{/if}}
+		
+		<div class="class-provider" style="display:none">
+			<div class="class-head" style="color: green">Welcome <span id="js-signed-in-display-name"></span></div>
+		</div>
+		<div><button type="button" name="btnLogout" id="btnLogout" onclick="signOut();">Logout</button></div>
+		<div style="border: 1px solid green; margin: 5px; padding: 5px; background-color: #ccc;">
+			<div class="class-sub"><strong><span>Messages: </span></strong><span id="js-firebase-messages"></span></div>
+		</div>
+		
+		<div>
+			<span>Leave a message:</span><input type="text" name="txtMessage" id="txtMessage"><button type="button" name="btnSend" id="btnSend" onclick="if ($('#txtMessage').val() != ''){writeNewMessage($('#txtMessage').val()); $('#txtMessage').val(''); }">Submit</button>
+		</div>
+		
+	</div>
+  </body>
+</html>

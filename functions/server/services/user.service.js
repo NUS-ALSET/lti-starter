@@ -1,4 +1,5 @@
 var async = require("async");
+var Promise = require('promise');
 //const commonService = require('./common.service');
 
 exports.addGroupMember = function (db, group_id, uid, callback){
@@ -34,7 +35,8 @@ exports.getGroupMemberByID = function (db, group_id, uid, callback){
 	});
 };
 
-exports.isInstructor = async function (db, uid){
+// Requires NodeJS version 7.6 or later
+/*exports.isInstructor = async function (db, uid){
 	const data = await db.ref('instructors').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
 		
 		if (!snapshot){
@@ -57,6 +59,43 @@ exports.isInstructor = async function (db, uid){
 			}
 		}
 		return false;
+	});
+	
+	return data;
+}*/
+
+// Using Promise for NodeJS < 7.6
+exports.isInstructor = function (db, uid){
+	const data = new Promise(function (resolve, reject) {
+	
+		db.ref('instructors').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
+		
+			if (!snapshot){
+				resolve(false);
+				//return false;
+			}
+			var jsonData = snapshot.val();
+			
+			if (typeof(jsonData.uid) != "undefined"){
+				if (jsonData.uid == uid && jsonData.isInstructor == true){
+					resolve(true);
+					//return true;
+				}
+			}
+			
+			for (var key in jsonData) {
+				if (jsonData.hasOwnProperty(key)) {
+					console.log("value: " + jsonData[key].uid);
+					if (jsonData[key].uid == uid && jsonData[key].isInstructor == true){
+						resolve(true);
+						//return true;
+					}
+				}
+			}
+			
+			resolve(false);
+			//return false;
+		});
 	});
 	
 	return data;

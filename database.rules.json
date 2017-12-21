@@ -1,0 +1,53 @@
+{
+  "rules": {
+    "messages":{
+      "$msgId":{
+        ".read": "auth != null",
+        ".write": "!data.exists() && newData.child('uid').val() === auth.uid",
+          ".indexOn": "uid"
+      }
+    },
+    "user_messages":{
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "secrets":{
+      "$id":{
+        ".read": "auth != null",
+        ".write": "!data.exists() && auth.uid != null",
+          ".indexOn": "consumer_key"
+      }
+    },
+    "settings":{
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "group_members":{
+      "$gmId":{
+      	".read": "auth != null",
+      	".write": "!data.exists() && auth != null",
+      	".indexOn": "group_id"
+      }
+    },
+    "instructors":{
+      "insId":{
+      	".read": "auth != null",
+      	".write": "auth != null",
+        ".indexOn": "uid"
+      }
+    },
+    "questions":{
+      "qId":{
+      	".read": "auth != null",
+      	".write": "auth != null",
+        ".indexOn": "group_id"
+      }
+    },
+    "answers":{
+      "aId":{
+      	".read": "auth != null",
+      	".write": "auth != null"
+      }
+    }
+  }
+}

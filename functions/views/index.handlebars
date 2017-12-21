@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Firebase LTI Login</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/live/4.1/firebase.js"></script>
+	<script type="text/javascript">
+	var config = {
+	  apiKey: "{{config.apiKey}}",
+	  authDomain: "{{config.authDomain}}",
+	  databaseURL: "{{config.databaseURL}}",
+	  storageBucket: "{{config.storageBucket}}"
+	};
+	firebase.initializeApp(config);
+
+	</script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/2.4.1/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/2.4.1/firebaseui.css" />
+	
+	
+	
+    <script type="text/javascript">
+      // FirebaseUI config.
+      var uiConfig = {
+        signInSuccessUrl: '',
+		callbacks: {
+          signInSuccess: function(currentUser, credential, redirectUrl) {
+		  
+			if (currentUser){
+				var displayName = currentUser.displayName;
+				var email = currentUser.email;
+				var emailVerified = currentUser.emailVerified;
+				var photoURL = currentUser.photoURL;
+				var uid = currentUser.uid;
+				var phoneNumber = currentUser.phoneNumber;
+				var providerData = currentUser.providerData;
+				currentUser.getIdToken().then(function(accessToken){
+					document.getElementById('sign-in-status').textContent = 'Signed in';
+					document.getElementById("js-firebase-account-details").textContent = JSON.stringify({
+						displayName: displayName,
+						email: email,
+						emailVerified: emailVerified,
+						phoneNumber: phoneNumber,
+						photoURL: photoURL,
+						uid: uid,
+						accessToken: accessToken,
+						providerData: providerData
+					}, null, ' ');
+					
+					// Custom Authentication
+					document.getElementById("js-sign-in-custom-auth").textContent = "In Progress ...";
+					$.ajax({
+					  method: "PUT",
+					  url: document.location,
+					  dataType: "json",
+					  data: { user_id: "{{body.user_id}}", oauth_consumer_key: "{{config.consumerKey}}", "accessToken": accessToken, "uid": uid }
+					})
+						.done(function( data ) {
+							console.log("Completed");
+							console.log(data);
+							document.getElementById("js-firebase-custom-auth-details").textContent = JSON.stringify(data);
+							document.getElementById("js-sign-in-custom-auth").textContent = "Completed";
+							
+							console.log("The custom token is already created");
+							
+							// Sign in with custom token
+							firebase.auth().signInWithCustomToken(data.customToken).catch(function(error) {
+							  // Handle Errors here.
+							  var errorCode = error.code;
+							  var errorMessage = error.message;
+							  console.log("signInWithCustomToken");
+							  console.log(errorCode);
+							  console.log(errorMessage);
+							  // ...
+							});
+			
+						})
+					  
+						.fail(function( jqXHR, textStatus ) {
+							console.log( "Request failed: " + textStatus );
+							document.getElementById("js-sign-in-custom-auth").textContent = "Incomplete";
+						});
+					  
+				});
+				
+			}else{
+				document.getElementById('sign-in-status').textContent = 'Signed out';
+			}
+            // Return type determines whether we continue the redirect automatically
+            // or whether we leave that to developer to handle.
+            return false;
+          },
+          uiShown: function() {
+            // The widget is rendered.
+            // Hide the loader.
+            //document.getElementById('loader').style.display = 'none';
+          }
+        },
+        signInOptions: [
+          // Leave the lines as is for the providers you want to offer your users.
+          //firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+          //firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+          //firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+          //firebase.auth.GithubAuthProvider.PROVIDER_ID,
+          //firebase.auth.EmailAuthProvider.PROVIDER_ID,
+          firebase.auth.PhoneAuthProvider.PROVIDER_ID
+        ],
+        // Terms of service url.
+        tosUrl: '<your-tos-url>'
+      };
+
+      // Initialize the FirebaseUI Widget using Firebase.
+      var ui = new firebaseui.auth.AuthUI(firebase.auth());
+      // The start method will wait until the DOM is loaded.
+      ui.start('#firebaseui-auth-container', uiConfig);
+    </script>
+  </head>
+  <body>
+	<style>
+		.class-head{
+			padding-top: 10px;
+			font-weight: bold;
+		}
+		.class-sub{
+			padding-left: 15px;
+		}
+	</style>
+    <h1>Firebase LTI Login</h1>
+	<div class="class-head">POST PARAMETERS</div>
+	<div class="class-sub"><span>oauth_consumer_key: </span><span>{{body.oauth_consumer_key}}</span></div>
+	<div class="class-sub"><span>user_id: </span><span>{{body.user_id}}</span></div>
+	<div class="class-sub"><span>oauth_signature: </span><span>{{body.oauth_signature}}</span></div>
+	
+	<div class="class-head">Firebase Function HARD CODE</div>
+	<div class="class-sub"><span>Consumer Key: </span><span>{{config.consumerKey}}</span></div>
+	<div class="class-sub"><span>Consumer Secret: </span><span>{{config.consumerSecret}}</span></div>
+	
+	<div class="class-head">IMS-LTI VALIDATION</div>
+	<div class="class-sub"><span>Error: </span><span style="color: red">{{err}}</span></div>
+	<div class="class-sub"><strong><span>Is Valid: </span><span style="color: blue">{{is_valid}}</span></strong></div>
+	
+	<div class="class-head">Firebase Sign in</div>
+	<div class="class-sub"><span>Sign in status: </span><strong><span id="sign-in-status" color="blue"></span></strong></div>
+	<div class="class-sub"><span>Account Details: </span><span id="js-firebase-account-details"></span></div>
+	
+	<div class="class-head" style="color: green">Firebase Custom Authentication</div>
+	<div style="border: 1px solid green; margin: 5px; padding: 5px; background-color: #ccc;">
+	<div class="class-sub"><strong><span>Status: </span><span id="js-sign-in-custom-auth" style="color: green"></span></strong></div>
+	<div class="class-sub"><strong><span>Custom Authenticated Details: </span></strong><span id="js-firebase-custom-auth-details"></span></div>
+	</div>
+	
+    <div id="firebaseui-auth-container"></div>
+  </body>
+</html>

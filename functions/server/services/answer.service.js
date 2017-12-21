@@ -1,5 +1,6 @@
-var async = require("async");
 //const commonService = require('./common.service');
+var async = require("async");
+var Promise = require('promise');
 
 exports.create = function (res, db, question_id, uid, content){
 	
@@ -48,6 +49,8 @@ exports.getByUserId = function (res, db, id, uid){
 	});
 };
 
+// Async only works with NodeJS 7.6 or later
+/*
 exports.getByQuestionId = async function (db, question_id, uid){
 	var arrResult = [];
 	
@@ -76,6 +79,46 @@ exports.getByQuestionId = async function (db, question_id, uid){
 				}
 			}
 			return arrResult;
+		});
+		return data;
+	}
+};
+*/
+
+exports.getByQuestionId = function (db, question_id, uid){
+	var arrResult = [];
+	
+	if (uid){
+		var data = new Promise(function (resolve, reject) { 
+			db.ref('answers/' + question_id).once('value').then(function(snapshot) {
+				var jsonData = snapshot.val();
+				console.log(jsonData);
+				for (var key in jsonData) {
+					if (jsonData.hasOwnProperty(key)) {
+						console.log(key + '---->' + jsonData[key].content);
+						if (uid == jsonData[key].uid){
+							arrResult.push({id: key, content: jsonData[key].content, uid: jsonData[key].uid});
+						}
+					}
+				}
+				resolve(arrResult);
+				//return arrResult;
+			});
+		});
+		return data;
+	}else{
+		var data = new Promise(function (resolve, reject) { 
+			db.ref('answers/' + question_id).once('value').then(function(snapshot) {
+				var jsonData = snapshot.val();
+				
+				for (var key in jsonData) {
+					if (jsonData.hasOwnProperty(key)) {
+						arrResult.push({id: key, content: jsonData[key].content, uid: jsonData[key].uid});
+					}
+				}
+				resolve(arrResult);
+				//return arrResult;
+			});
 		});
 		return data;
 	}

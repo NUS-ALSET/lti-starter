@@ -138,7 +138,7 @@ app.post('/groups/create', (req, res) => {
   }
 });
 
-app.get('/groups', (req, res) => {
+app.post('/groups', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  
 		// Using Firebase Admin SDK to verify the token
@@ -156,7 +156,7 @@ app.get('/groups', (req, res) => {
 	}
 });
 
-app.get('/groups/:id', (req, res) => {
+app.post('/groups/:id', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  
 		// Using Firebase Admin SDK to verify the token
@@ -245,7 +245,7 @@ app.post('/questions/create', (req, res) => {
   }
 });
 
-app.get('/questions/group/:group_id', (req, res) => {
+app.post('/questions/group/:group_id', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	 
 	var groupId = "";
@@ -336,7 +336,7 @@ app.post('/messages/create', (req, res) => {
 });
 
 // Get all messages
-app.get('/messages', (req, res) => {
+app.post('/messages', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  
 		// Using Firebase Admin SDK to verify the token
@@ -354,7 +354,7 @@ app.get('/messages', (req, res) => {
 	}
 });
 
-app.get('/messages/group/:group_id', (req, res) => {
+app.post('/messages/group/:group_id', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  
 		// Using Firebase Admin SDK to verify the token
@@ -378,13 +378,13 @@ app.get('/messages/group/:group_id', (req, res) => {
 });
 
 // Get all messages
-app.get('/messages', (req, res) => {
+app.post('/messages', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   response.send(JSON.stringify({}));
 });
 
 // Get message by Message ID
-app.get('/messages/:id', (req, res) => {
+app.post('/messages/:id', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   
   //...

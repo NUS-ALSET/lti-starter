@@ -1,38 +1,38 @@
 import commonService from './common.service';
 
-export const groupService = {
+export const answerService = {
     create,
     getAll,
     getById
 };
 
-function create(name) {
+function create(content) {
 	console.log("token: " + commonService.getToken());
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + commonService.getToken() },
-        body: JSON.stringify({name: name})
+        body: JSON.stringify({content: content})
     };
 
-    return fetch('/groups/create', requestOptions).then(commonService.handleResponse);
+    return fetch('/answers/create', requestOptions).then(commonService.handleResponse);
 }
 
 function getAll() {
     const requestOptions = {
-        method: 'GET',
+        method: 'POST',
         headers: commonService.authHeader()
     };
 
-    return fetch('/groups', requestOptions).then(commonService.handleResponse);
+    return fetch('/answers', requestOptions).then(commonService.handleResponse);
 }
 
 function getById(id) {
     const requestOptions = {
-        method: 'GET',
+        method: 'POST',
         headers: commonService.authHeader()
     };
 
-    return fetch('/groups/' + id, requestOptions).then(commonService.handleResponse);
+    return fetch('/answers/' + id, requestOptions).then(commonService.handleResponse);
 }
 
 /*function handleResponse(response) {

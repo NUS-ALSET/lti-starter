@@ -20,7 +20,7 @@ function verifyToken(idToken) {
 
 function getAll() {
     const requestOptions = {
-        method: 'GET',
+        method: 'POST',
         headers: commonService.authHeader()
     };
 
@@ -29,7 +29,7 @@ function getAll() {
 
 function getById(id) {
     const requestOptions = {
-        method: 'GET',
+        method: 'POST',
         headers: commonService.authHeader()
     };
 

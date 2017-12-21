@@ -56,8 +56,6 @@ exports.getByGroupId = function (res, db, group_id, uid){
 
 		if (isAccess == true){
 			userService.isInstructor(db, uid).then(function(isInstructor){
-				isInstructor = false;
-				
 				db.ref('questions').orderByChild("group_id").equalTo(group_id).once('value').then(function(snapshot) {
 					var jsonData = snapshot.val();
 					var arrResult = [];

@@ -1,5 +1,6 @@
 //const commonService = require('./common.service');
 var async = require("async");
+var Promise = require('promise');
 
 exports.create = function (res, db, group_id, uid, name, password){
 	
@@ -53,7 +54,7 @@ exports.getAll = function (res, db){
 };
 
 exports.getByUserId = function (res, db, uid){
-	
+	console.log("group getByUserId");
 	db.ref('group_members').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
 		var jsonData = snapshot.val();
 		var arrResult = [];
@@ -68,7 +69,8 @@ exports.getByUserId = function (res, db, uid){
 	}).then(function(group_ids){
 
 		if (group_ids && group_ids.length > 0){
-			
+			/*
+			// For NodeJS 7.6 or later
 			async.mapLimit(group_ids, group_ids.length, async function(map_group_id) {
 				
 				const data = await db.ref('groups/' + map_group_id).once('value').then(function(snapshot) {
@@ -85,6 +87,33 @@ exports.getByUserId = function (res, db, uid){
 				res.setHeader('Content-Type', 'application/json');
 				res.send(JSON.stringify(results));
 			})
+			*/
+			
+			var promises = [];
+			
+			for (k = 0; k < group_ids.length; k += 1) {
+			  promises.push(
+			  
+				new Promise(function (resolve, reject) { 
+					var selected_group_id = group_ids[k];
+					db.ref('groups/' + group_ids[k]).once('value').then(function(snapshot) {
+						var jsonGroup = snapshot.val();
+						resolve({id: selected_group_id, group_name: jsonGroup.name, uid: jsonGroup.uid, has_password: (jsonGroup.pass) ? true: false});
+					}).catch(err => {
+						// handle errors
+					});
+				})
+			  
+			  );
+			}
+			
+			Promise.all(promises).then(function(results){
+				// results is now an array of the response bodies
+				res.setHeader('Content-Type', 'application/json');
+				res.send(JSON.stringify(results));
+			}).catch(err => {
+				// handle errors
+			});
 		}
 	});
 };
@@ -133,6 +162,8 @@ exports.getById = function (res, db, id, uid){
 	
 }
 
+// Async only works with NodeJS version 7.6 or later
+/*
 exports.isAccess = async function (db, id, uid){
 	const data = await db.ref('group_members/' + id).once('value').then(function(snapshot) {
 		console.log(snapshot.val());
@@ -160,7 +191,41 @@ exports.isAccess = async function (db, id, uid){
 	
 	return data;
 }
+*/
 
+// Promise for NodeJS < 7.6
+exports.isAccess = function (db, id, uid){
+	const data = new Promise(function (resolve, reject) {
+		db.ref('group_members/' + id).once('value').then(function(snapshot) {
+			if (!snapshot){
+				resolve(false);
+				//return false;
+			}
+			var jsonData = snapshot.val();
+			
+			if (typeof(jsonData.uid) != "undefined"){
+				if (jsonData.uid == uid){
+					resolve(true);
+					//return true;
+				}
+			}
+			
+			for (var key in jsonData) {
+				if (jsonData.hasOwnProperty(key)) {
+					console.log("value: " + jsonData[key].uid);
+					if (jsonData[key].uid == uid){
+						resolve(true);
+						//return true;
+					}
+				}
+			}
+			resolve(false);
+			//return false;
+		});
+	});
+	
+	return data;
+}
 exports.addMember = function (res, db, group_id, uid, callback){
 	// A Member entry.
 	var memberData = {
