@@ -2,6 +2,7 @@
 
 # dependencies
 /functions/node_modules
+/functions/build
 
 # System Files
 .DS_Store
