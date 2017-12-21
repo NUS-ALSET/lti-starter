@@ -35,7 +35,5 @@
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6"
   },
-  "private": true,
-  "homepage": "http://us-central1-fir-lti-35fdc.cloudfunctions.net/ltiLogin",
-  "proxy": "https://us-central1-fir-lti-35fdc.cloudfunctions.net/ltiLogin"
+  "private": true
 }
