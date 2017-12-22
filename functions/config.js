@@ -8,7 +8,6 @@ exports.lti = {
 	authDomain: "fir-lti-35fdc.firebaseapp.com",
 	databaseURL: "https://fir-lti-35fdc.firebaseio.com",
 	storageBucket: "fir-lti-35fdc.appspot.com",
-	
-	// Firebase Custom Authentication Function URL
-	firebase_custom_auth_url: ""
+
+	projectId: "fir-lti-35fdc"
 };

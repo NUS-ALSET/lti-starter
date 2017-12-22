@@ -235,7 +235,7 @@
 		}
 		
 		function viewMessagesList(){
-			if (!idTtoken){
+			/*if (!idTtoken){
 				console.log("Empty Token");
 				
 				// Show error message if needed.
@@ -256,7 +256,7 @@
 		  
 			.fail(function( jqXHR, textStatus ) {
 				console.log( "Request failed: " + textStatus );
-			});
+			});*/
 		}
 		
 		function signOut(){
@@ -322,13 +322,15 @@
 	</div>
 	
 	<div class="class-sub"><span>Sign in status: </span><strong><span id="sign-in-status" color="blue"></span></strong></div>
-	<div id="js-signgin-container" style="display:{{#if is_valid}}none{{/if}}">
-		{{#if is_valid}}
-		<button type="button" name="btnSignInWithLTI" id="btnSignInWithLTI" onclick="signInWithLTI();">Sign In with LTI</button>
-		{{/if}}
-		<button type="button" name="btnSignInWithPopup" id="btnSignInWithPopup" onclick="signInWithPopup();">Sign In with Google</button>
+
+	<div style="display:none">
+		<div id="js-signgin-container" style="display:{{#if is_valid}}none{{/if}}">
+			{{#if is_valid}}
+			<button type="button" name="btnSignInWithLTI" id="btnSignInWithLTI" onclick="signInWithLTI();">Sign In with LTI</button>
+			{{/if}}
+			<button type="button" name="btnSignInWithPopup" id="btnSignInWithPopup" onclick="signInWithPopup();">Sign In with Google</button>
+		</div>
 	</div>
-	
 	
 	
 	<div id="js-user-container" style="display: {{#if is_valid}}{{else}}none{{/if}}">
@@ -348,22 +350,23 @@
 			<div>Context label: {{body.context_label}}</div>
 			<div>Resource ID: {{body.resource_link_id}}</div>
 			<div>Resource title: {{body.resource_link_title}}</div>
-			<div><button name="btnRedirectToReact" id="btnRedirectToReact" onclick="window.location='/group/{{body.context_id}}'">Redirect to React App</button></div>
+			<div><button name="btnRedirectToReact" id="btnRedirectToReact" onclick="window.location='https://{{config.projectId}}.firebaseapp.com/ctoken/{{accessToken}}'">Redirect to React App</button></div>
 		</div>
 		{{/if}}
 		
-		<div class="class-provider" style="display:none">
-			<div class="class-head" style="color: green">Welcome <span id="js-signed-in-display-name"></span></div>
+		<div style="display:none">
+			<div class="class-provider" style="display:none">
+				<div class="class-head" style="color: green">Welcome <span id="js-signed-in-display-name"></span></div>
+			</div>
+			<div><button type="button" name="btnLogout" id="btnLogout" onclick="signOut();">Logout</button></div>
+			<div style="border: 1px solid green; margin: 5px; padding: 5px; background-color: #ccc;">
+				<div class="class-sub"><strong><span>Messages: </span></strong><span id="js-firebase-messages"></span></div>
+			</div>
+			
+			<div>
+				<span>Leave a message:</span><input type="text" name="txtMessage" id="txtMessage"><button type="button" name="btnSend" id="btnSend" onclick="if ($('#txtMessage').val() != ''){writeNewMessage($('#txtMessage').val()); $('#txtMessage').val(''); }">Submit</button>
+			</div>
 		</div>
-		<div><button type="button" name="btnLogout" id="btnLogout" onclick="signOut();">Logout</button></div>
-		<div style="border: 1px solid green; margin: 5px; padding: 5px; background-color: #ccc;">
-			<div class="class-sub"><strong><span>Messages: </span></strong><span id="js-firebase-messages"></span></div>
-		</div>
-		
-		<div>
-			<span>Leave a message:</span><input type="text" name="txtMessage" id="txtMessage"><button type="button" name="btnSend" id="btnSend" onclick="if ($('#txtMessage').val() != ''){writeNewMessage($('#txtMessage').val()); $('#txtMessage').val(''); }">Submit</button>
-		</div>
-		
 	</div>
   </body>
 </html>

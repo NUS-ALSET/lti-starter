@@ -60,7 +60,7 @@ app.post('/users', (req, res) => {
   
   //...
   
-  response.send(JSON.stringify({}));
+  res.send(JSON.stringify({}));
 });
 
 app.post('/users/verify-token', (req, res) => {
@@ -100,7 +100,7 @@ app.post('/users/:id', (req, res) => {
   
   //...
   
-  response.send(JSON.stringify({}));
+  res.send(JSON.stringify({}));
 });
 
 // GROUPS
@@ -380,7 +380,7 @@ app.post('/messages/group/:group_id', (req, res) => {
 // Get all messages
 app.post('/messages', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  response.send(JSON.stringify({}));
+  res.send(JSON.stringify({}));
 });
 
 // Get message by Message ID
@@ -389,7 +389,7 @@ app.post('/messages/:id', (req, res) => {
   
   //...
   
-  response.send(JSON.stringify({}));
+  res.send(JSON.stringify({}));
 });
 
 module.exports = app;

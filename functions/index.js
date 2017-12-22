@@ -70,7 +70,7 @@ appLTI.engine('handlebars', expressHandlebars({helpers: {
 appLTI.set('view engine', 'handlebars');
 
 // LTI POST
-appLTI.post("*", (request, response) => {
+appLTI.post("/*", (request, response) => {
 	
 	var consumerKey = "";
 	
@@ -337,26 +337,52 @@ appLTI.post("/signin/verify", (request, response) => {
 	  });
 });
 
-// React
-appLTI.use(express.static(path.resolve(__dirname, '', 'build')));
-appLTI.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '', 'build', 'index.html'));
-});
+exports.ltiLogin = functions.https.onRequest((request, response) => {
+	console.log("REQUEST");
+	console.log(request);
+	console.log(request.route);
+	console.log(request.hostname);
+	if (!request.path) {
+		request.url = "/ltiLogin";
+	}
+	return appLTI(request, response);
+})
+
+//module.exports = appLTI;
+//exports.ltiLogin = functions.https.onRequest(appLTI);
+
+// API
+const app = express();
+
+app.enable('trust proxy');
+app.use(cors({ origin: true }));
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+// Using Bearer Token
+app.use(bearerToken());
+
+// Setup logger
+app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ms'));
 
 //
 // Server
 //
 
 // USERS
-appLTI.post('/users', (req, res) => {
+app.post('/users', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   
   //...
   
-  response.send(JSON.stringify({}));
+  res.send(JSON.stringify({}));
 });
 
-appLTI.post('/users/verify-token', (req, res) => {
+app.post('/users/verify-token', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	  
 	// Using Firebase Admin SDK to verify the token
@@ -388,16 +414,16 @@ appLTI.post('/users/verify-token', (req, res) => {
   }
 });
 
-appLTI.post('/users/:id', (req, res) => {
+app.post('/users/:id', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   
   //...
   
-  response.send(JSON.stringify({}));
+  res.send(JSON.stringify({}));
 });
 
 // GROUPS
-appLTI.post('/groups/create', (req, res) => {
+app.post('/groups/create', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	 
 	var groupName = "";
@@ -431,7 +457,7 @@ appLTI.post('/groups/create', (req, res) => {
   }
 });
 
-appLTI.post('/groups', (req, res) => {
+app.post('/groups', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  
 		// Using Firebase Admin SDK to verify the token
@@ -449,7 +475,7 @@ appLTI.post('/groups', (req, res) => {
 	}
 });
 
-appLTI.post('/groups/:id', (req, res) => {
+app.post('/groups/:id', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  
 		// Using Firebase Admin SDK to verify the token
@@ -474,7 +500,7 @@ appLTI.post('/groups/:id', (req, res) => {
 });
 
 // QUESTIONS
-appLTI.post('/questions', (req, res) => {
+app.post('/questions', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	 
 	var groupId = "";
@@ -504,7 +530,7 @@ appLTI.post('/questions', (req, res) => {
   }
 });
 
-appLTI.post('/questions/create', (req, res) => {
+app.post('/questions/create', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	 
 	var name = "";
@@ -538,7 +564,7 @@ appLTI.post('/questions/create', (req, res) => {
   }
 });
 
-appLTI.post('/questions/group/:group_id', (req, res) => {
+app.post('/questions/group/:group_id', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	 
 	var groupId = "";
@@ -569,7 +595,7 @@ appLTI.post('/questions/group/:group_id', (req, res) => {
 });
 
 // ANSWERS
-appLTI.post('/answers', (req, res) => {
+app.post('/answers', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	 
 	var questionId = "";
@@ -600,7 +626,7 @@ appLTI.post('/answers', (req, res) => {
 });
 
 // MESSAGES
-appLTI.post('/messages/create', (req, res) => {
+app.post('/messages/create', (req, res) => {
   if (typeof(req.token) != "undefined"){
 	  
 	// Using Firebase Admin SDK to verify the token
@@ -629,7 +655,7 @@ appLTI.post('/messages/create', (req, res) => {
 });
 
 // Get all messages
-appLTI.post('/messages', (req, res) => {
+app.post('/messages', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  
 		// Using Firebase Admin SDK to verify the token
@@ -647,7 +673,7 @@ appLTI.post('/messages', (req, res) => {
 	}
 });
 
-appLTI.post('/messages/group/:group_id', (req, res) => {
+app.post('/messages/group/:group_id', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  
 		// Using Firebase Admin SDK to verify the token
@@ -671,28 +697,19 @@ appLTI.post('/messages/group/:group_id', (req, res) => {
 });
 
 // Get all messages
-appLTI.post('/messages', (req, res) => {
+app.post('/messages', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  response.send(JSON.stringify({}));
+  res.send(JSON.stringify({}));
 });
 
 // Get message by Message ID
-appLTI.post('/messages/:id', (req, res) => {
+app.post('/messages/:id', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   
   //...
   
-  response.send(JSON.stringify({}));
+  res.send(JSON.stringify({}));
 });
 
-exports.ltiLogin = functions.https.onRequest((request, response) => {
-	console.log("REQUEST");
-	console.log(request);
-  if (!request.path) {
-    request.url = "/ltiLogin";
-  }
-  return appLTI(request, response);
-})
 
-//module.exports = appLTI;
-//exports.ltiLogin = functions.https.onRequest(appLTI);
+exports.api = functions.https.onRequest(app);
