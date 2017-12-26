@@ -15,7 +15,7 @@ const admin = require('firebase-admin');
 var serviceAccount = require("./service-account.json");
 
 // Load configuration
-const config = require('./config');
+const config = require('./src/config');
 
 
 admin.initializeApp({
@@ -401,8 +401,8 @@ app.post('/users/verify-token', (req, res) => {
 			groupService.create(res, db, classId, uid, classTitle, '');
 			//groupService.addMember(res, db, classId, uid);
 		}
-		
-		res.status(200).send('OK');
+		res.setHeader('Content-Type', 'application/json');
+		res.status(200).send({status: 'Ok'});
 		
 	  }).catch(function(error) {
 		// Handle error

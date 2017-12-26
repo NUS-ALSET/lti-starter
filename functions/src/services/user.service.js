@@ -15,7 +15,10 @@ function verifyToken(idToken) {
         body: {}
     };
 
-    return fetch('/users/verify-token', requestOptions).then(commonService.handleResponse);
+    return fetch('/users/verify-token', requestOptions).then(commonService.handleResponse)
+	.catch(function(err) {
+		// Error :(
+	});
 }
 
 function getAll() {

@@ -83,7 +83,8 @@ app.post('/users/verify-token', (req, res) => {
 			//groupService.addMember(res, db, classId, uid);
 		}
 		
-		res.status(200).send('OK');
+		res.setHeader('Content-Type', 'application/json');
+		res.status(200).send({status: 'Ok'});
 		
 	  }).catch(function(error) {
 		// Handle error
