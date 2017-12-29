@@ -1,45 +1,45 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import {connect} from 'react-redux';
-
-import {
-  BrowserRouter as Router,
-  Route,
-  Link,
-  Redirect,
-  withRouter,
-  Switch
-} from 'react-router';
-
-class RequireAuth extends React.Component {
-  componentDidMount() {
-    const { dispatch, currentURL } = this.props
-
-    if (!signedIn) {
-      // set the current url/path for future redirection (we use a Redux action)
-      // then redirect (we use a React Router method)
-      dispatch(setRedirectUrl(currentURL))
-      browserHistory.replace("/signin")
+/**
+ * Higher-order component (HOC) to wrap restricted pages
+ */
+export default function RequireAuth(TargetComponent){
+    class Restricted extends Component {
+        componentWillMount() {
+            this.checkAuthentication(this.props);
+        }
+        componentWillReceiveProps(nextProps) {
+            if (nextProps.location !== this.props.location) {
+                this.checkAuthentication(nextProps);
+            }
+        }
+        checkAuthentication(params) {
+            const { history } = params;
+		
+			console.log("Restricted");
+			console.log(params);
+			console.log(params.signedIn.signedIn);
+			if (!params.signedIn.signedIn){
+				history.replace({ pathname: '/signin' });
+			}
+        }
+        render() {
+            return (
+				<TargetComponent {...this.props} />
+			);
+        }
     }
-  }
+	
+	function mapStateToProps(state) {
+	
+		console.log("mapStateToProps withRouter");
+		const signedIn = state.signedIn;
+		const user = state.user;
+		const displayName = state.displayName;
+		
+		return {signedIn, user, displayName, redirectUrl: state.redirectUrl}
+	}
 
-  render() {
-    if (signedIn) {
-      return this.props.children
-    } else {
-      return null
-    }
-  }
+    return withRouter(connect(mapStateToProps)(Restricted));
 }
-
-// Grab a reference to the current URL. If this is a web app and you are
-// using React Router, you can use `ownProps` to find the URL. Other
-// platforms (Native) or routing libraries have similar ways to find
-// the current position in the app.
-function mapStateToProps(state, ownProps) {
-  return {
-    signedIn: state.signedIn,
-    currentURL: ownProps.location.pathname
-  }
-}
-
-export default connect(mapStateToProps)(RequireAuth)

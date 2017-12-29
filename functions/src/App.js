@@ -15,7 +15,8 @@ import {
 import { FirebaseAuth } from 'react-firebaseui';
 import firebase from 'firebase';
 
-import {MainLayoutRoute} from './MainLayoutRoute';
+import {MainLayout} from './MainLayout';
+import {PublicLayout} from './PublicLayout';
 
 import Group from './Group';
 import GroupDetails from './GroupDetails';
@@ -24,12 +25,16 @@ import actions from './actions';
 
 import {userService, messageService} from './services';
 
+import configData from './config';
+
+import RequireAuth from './RequireAuth';
+
 // Configure Firebase.
 const config = {
-  apiKey: "AIzaSyBL1XcR8F-m_gNcKLBNdIGvcv7DYjLvgrI",
-  authDomain: "fir-lti-35fdc.firebaseapp.com",
-  databaseURL: "https://fir-lti-35fdc.firebaseio.com",
-  storageBucket: "fir-lti-35fdc.appspot.com"
+  apiKey: configData.lti.apiKey,
+  authDomain: configData.lti.authDomain,
+  databaseURL: configData.lti.databaseURL,
+  storageBucket: configData.lti.storageBucket
 };
 
 firebase.initializeApp(config);
@@ -39,6 +44,7 @@ class App extends Component {
 	constructor(props) {
 		super(props);
 		var _this = this;
+		const {dispatch} = this.props;
 		
 		firebase.auth().onAuthStateChanged(function(currentUser) {
 		  if (currentUser) {
@@ -52,9 +58,9 @@ class App extends Component {
 			var providerData = currentUser.providerData;
 			
 			currentUser.getIdToken().then(function(token){	
-				_this.props.dispatch(actions.setSignedIn(true));
-				_this.props.dispatch(actions.setDisplayName(displayName));
-				_this.props.dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
+				dispatch(actions.setSignedIn(true));
+				dispatch(actions.setDisplayName(displayName));
+				dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
 				localStorage.removeItem('user');
 				localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 				
@@ -69,9 +75,9 @@ class App extends Component {
 		  } else {
 		  
 			// User is signed out.
-			_this.props.dispatch(actions.setSignedIn(false));
-			_this.props.dispatch(actions.setDisplayName(''));
-			_this.props.dispatch(actions.setUser({}));
+			dispatch(actions.setSignedIn(false));
+			dispatch(actions.setDisplayName(''));
+			dispatch(actions.setUser({}));
 			localStorage.removeItem('user');
 			
 			_this.setState({signedIn:false});
@@ -148,12 +154,13 @@ class App extends Component {
       <div className="App">
 		<Router>
 			<Switch>
-				<MainLayoutRoute exact path="/" component={Group} />
-				<MainLayoutRoute exact path="/groups" component={Group} />
-				<MainLayoutRoute path="/group/:id" component={GroupDetails} />
-				<Route path="/signin" component={SignIn} />
-				<Route path="/ctoken/:id" component={SignIn} />
-				<Route path="/signout" component={SignOut} />
+				<MainLayout exact path="/" component={RequireAuth(Group)} />
+				<MainLayout exact path="/groups" component={RequireAuth(Group)}/>
+				<MainLayout path="/group/:id" component={RequireAuth(GroupDetails)} />
+				
+				<PublicLayout path="/signin" component={SignInC} />
+				<PublicLayout path="/ctoken/:id" component={SignInC} />
+				<PublicLayout path="/signout" component={SignOutC} />
 			</Switch>
 		</Router>
 	  </div>
@@ -181,9 +188,9 @@ class SignIn extends Component {
 		super(props);
 		var _this = this;
 		console.log("Signin");
-		const {match} = this.props;
-		console.log(match);
-		
+		const {match, dispatch} = this.props;
+		console.log(this.props);
+		console.log("----------------------------END----------------------------");
 		if (match){
 			if (typeof (match.params.id) != "undefined"){
 				this.ctoken = match.params.id;
@@ -207,9 +214,10 @@ class SignIn extends Component {
 						var providerData = currentUser.providerData;
 						
 						currentUser.getIdToken().then(function(token){	
-							_this.props.dispatch(actions.setSignedIn(true));
-							_this.props.dispatch(actions.setDisplayName(displayName));
-							_this.props.dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
+							dispatch(actions.setSignedIn(true));
+							dispatch(actions.setDisplayName(displayName));
+							dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
+							localStorage.removeItem('user');
 							localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 							
 							_this.setState({signedIn:true});
@@ -221,8 +229,8 @@ class SignIn extends Component {
 					  } else {
 					  
 						// User is signed out.
-						_this.props.dispatch(actions.setSignedIn(false));
-						_this.props.dispatch(actions.setUser({}));
+						dispatch(actions.setSignedIn(false));
+						dispatch(actions.setUser({}));
 						localStorage.removeItem('user');
 						
 						_this.setState({signedIn:false});
@@ -238,9 +246,6 @@ class SignIn extends Component {
 		signedIn: false, // Local signed-in state.
 	};
 	
-	 componentDidMount() {
-	 }
-	 
 	// Configure FirebaseUI.
 	uiConfig = {
 		// Popup signin flow rather than redirect flow.
@@ -260,14 +265,17 @@ class SignIn extends Component {
 			
 			var displayName = currentUser.displayName ? currentUser.displayName: uid;
 			var providerData = currentUser.providerData;
+			const {dispatch} = this.props;
+			var _this = this;
 			
 			currentUser.getIdToken().then(function(token){
-				this.props.dispatch(actions.setSignedIn(true));
-				this.props.dispatch(actions.setDisplayName(displayName));
-				this.props.dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
+				dispatch(actions.setSignedIn(true));
+				dispatch(actions.setDisplayName(displayName));
+				dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
+				localStorage.removeItem('user');
 				localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 				
-				this.setState({signedIn:true});
+				//_this.setState({signedIn:true});
 				
 				// Verify Token, Auto create group and member if any
 				userService.verifyToken(token);
@@ -277,7 +285,7 @@ class SignIn extends Component {
 		  }
 		}
 	};
-
+	
   render() {
 	if (!this.state.signedIn) {
 		return (
@@ -286,15 +294,16 @@ class SignIn extends Component {
 	}
 	
 	return (
-		<Redirect to={{ pathname: '/signin' }} />
+		<Redirect to={{ pathname: '/groups' }} />
 	);
   }
 }
-
+const SignInC = connect(mapStateToProps)(SignIn);
 
 class SignOut extends Component {
 	constructor(props) {
 		super(props);
+		const {dispatch} = this.props;
 		
 		firebase.auth().signOut().then(function(){
 			// Initialize the FirebaseUI Widget using Firebase.
@@ -303,9 +312,9 @@ class SignOut extends Component {
 			//ui.start('#firebaseui-auth-container', uiConfig);
 			
 			// User is signed out.
-			this.props.dispatch(actions.setSignedIn(false));
-			this.props.dispatch(actions.setDisplayName(''));
-			this.props.dispatch(actions.setUser({}));
+			dispatch(actions.setSignedIn(false));
+			dispatch(actions.setDisplayName(''));
+			dispatch(actions.setUser({}));
 			localStorage.removeItem('user');
 				
 		}).catch(function(error){
@@ -315,7 +324,82 @@ class SignOut extends Component {
 	
 	render() {
 		return (
-			<SignIn />
+			<SignInC />
 		)
 	}
+}
+
+const SignOutC = connect(mapStateToProps)(SignOut);
+
+
+class SignInWCToken extends Component {
+	
+	ctoken = null;
+	constructor(props) {
+		super(props);
+		var _this = this;
+		const {match} = this.props;
+		
+		if (match){
+			if (typeof (match.params.id) != "undefined"){
+				this.ctoken = match.params.id;
+				
+				if (this.ctoken){
+					firebase.auth().signInWithCustomToken(this.ctoken).catch(function(error) {
+					  // Handle Errors here.
+					  var errorCode = error.code;
+					  var errorMessage = error.message;
+					});
+					
+					firebase.auth().onAuthStateChanged(function(currentUser) {
+					  if (currentUser) {
+					  
+						// User is signed in.
+						var uid = currentUser.uid;
+						console.log("uid:" + uid);
+						
+						var displayName = currentUser.displayName ? currentUser.displayName: uid;
+						var providerData = currentUser.providerData;
+						
+						currentUser.getIdToken().then(function(token){	
+							
+							localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
+							
+							_this.setState({loading:false});
+							
+							// Verify Token, Auto create group and member if any
+							userService.verifyToken(token);
+						});
+						
+					  } else {
+					  
+						// User is signed out.
+						localStorage.removeItem('user');
+						
+						_this.setState({loading:false});
+						
+						console.log("signed out");
+					  }
+					});
+				}else{
+					_this.setState({loading:false});
+				}
+			}
+		}
+	}
+	
+	state = {
+		loading: true,
+	};
+	
+  render() {
+	if (this.state.loading){
+		return (
+			<div>In Process...</div>
+		);
+	}
+	return (
+		<Redirect to={{ pathname: '/groups' }} />
+	);
+  }
 }
