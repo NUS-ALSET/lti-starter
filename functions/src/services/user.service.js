@@ -12,7 +12,7 @@ function verifyToken(idToken) {
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-        body: {}
+        body: JSON.stringify({})
     };
 
     return fetch('/users/verify-token', requestOptions).then(commonService.handleResponse)
@@ -24,7 +24,8 @@ function verifyToken(idToken) {
 function getAll() {
     const requestOptions = {
         method: 'POST',
-        headers: commonService.authHeader()
+        headers: commonService.authHeader(),
+		body: JSON.stringify({})
     };
 
     return fetch('/users', requestOptions).then(commonService.handleResponse);
@@ -33,7 +34,8 @@ function getAll() {
 function getById(id) {
     const requestOptions = {
         method: 'POST',
-        headers: commonService.authHeader()
+        headers: commonService.authHeader(),
+		body: JSON.stringify({})
     };
 
     return fetch('/users/' + id, requestOptions).then(commonService.handleResponse);

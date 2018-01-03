@@ -1,6 +1,7 @@
 //const commonService = require('./common.service');
 var async = require("async");
 var Promise = require('promise');
+var userService = require('./user.service');
 
 exports.create = function (res, db, group_id, uid, name, password){
 	
@@ -37,19 +38,26 @@ exports.create = function (res, db, group_id, uid, name, password){
 
 exports.getAll = function (res, db){
 	
-	db.ref('groups').once('value').then(function(snapshot) {
-		var jsonGroups = snapshot.val();
-		var arrResult = [];
-		
-		for (var key in jsonGroups) {
-			if (jsonGroups.hasOwnProperty(key)) {
+	userService.isInstructor(db, uid).then(function(isInstructor){
+		if (isInstructor == true){
+			
+			db.ref('groups').once('value').then(function(snapshot) {
+				var jsonGroups = snapshot.val();
+				var arrResult = [];
 				
-				arrResult.push({id: key, group_name: jsonGroups[key].name, uid: jsonGroups[key].uid, has_password: (jsonGroups[key].pass) ? true: false});
-			}
+				for (var key in jsonGroups) {
+					if (jsonGroups.hasOwnProperty(key)) {
+						
+						arrResult.push({id: key, group_name: jsonGroups[key].name, uid: jsonGroups[key].uid, has_password: (jsonGroups[key].pass) ? true: false});
+					}
+				}
+				
+				res.setHeader('Content-Type', 'application/json');
+				res.send(JSON.stringify(arrResult));
+			});
+		}else{
+			getByUserId(res, db, uid);
 		}
-		
-		res.setHeader('Content-Type', 'application/json');
-		res.send(JSON.stringify(arrResult));
 	});
 };
 

@@ -83,12 +83,17 @@ class GroupDetails extends Component {
 		 });
 		 
 		 // Load Question List
-		 questionService.getByGroupId(this.id).then(function(res){
+		 this.loadQuestions();
+	 }
+	
+	loadQuestions = () =>{
+		var _this = this;
+		questionService.getByGroupId(this.id).then(function(res){
 			 console.log("returned questions");
 			 console.log(res);
 			 _this.setState({questions: res});
 		 });
-	 }
+	}
 	
   handleMessageChange = (e) =>{
 	  this.setState({newMessageEntry: e.target.value});
@@ -157,7 +162,7 @@ class GroupDetails extends Component {
 				  <div class="col-md-12">{post.name}</div>
 				</div>
 				<div class="row">
-					<div class="col-md-12"><button key={post.id} type="button" name="btnAnswerModal" onClick={boundAnswerClick}>Answer Now</button></div>
+					<div class="col-md-12"><button key={post.id} type="button" name="btnAnswerModal" onClick={boundAnswerClick}>Submit</button></div>
 				</div>
 				<this.Answer entries={post.answer_data} />
 			</div>
@@ -192,11 +197,14 @@ class GroupDetails extends Component {
   createAnswer = () =>{
 	  if (this.state.newAnswerEntry){
 		var _this = this;  
-		answerService.create(this.id, this.state.newAnswerEntry).then(function(res){
+		answerService.create(this.state.selected_question.id, this.state.newAnswerEntry).then(function(res){
 			if (typeof(res.content) != "undefined"){
 				// Add the new answer to the state of current answer List
 				//_this.state.questions.push(res);
 				//_this.setState({questions: _this.state.questions});
+				
+				_this.loadQuestions();
+				_this.handleCloseModal();
 			}
 		});
 	  }
@@ -282,8 +290,9 @@ class GroupDetails extends Component {
 function mapStateToProps(state) {
 	const signedIn = state.signedIn;
 	const user = state.user;
+	const isInstructor = state.isInstructor;
 	
-	return {signedIn, user}
+	return {signedIn, user, isInstructor}
 }
 
 export default connect(mapStateToProps)(GroupDetails);

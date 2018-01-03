@@ -147,7 +147,7 @@ app.post('/groups', (req, res) => {
 		  .then(function(decodedToken) {
 			var uid = decodedToken.uid;
 
-			groupService.getByUserId(res, db, uid);
+			groupService.getAll(res, db, uid);
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);

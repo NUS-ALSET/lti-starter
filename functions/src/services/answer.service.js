@@ -6,15 +6,15 @@ export const answerService = {
     getById
 };
 
-function create(content) {
+function create(group_id, name) {
 	console.log("token: " + commonService.getToken());
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + commonService.getToken() },
-        body: JSON.stringify({content: content})
+        body: JSON.stringify({group_id: group_id, name: name})
     };
 
-    return fetch('/answers/create', requestOptions).then(commonService.handleResponse);
+    return fetch('/questions/create', requestOptions).then(commonService.handleResponse);
 }
 
 function getAll() {

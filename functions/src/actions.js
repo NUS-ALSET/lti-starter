@@ -33,4 +33,11 @@ function setDisplayName(displayName) {
   };
 };
 
-export default {setSignedIn, setUser, setDisplayName};
+function setIsInstructor(isInstructor) {
+  return {
+    type: actionTypes.IS_INSTRUCTOR,
+    isInstructor
+  };
+};
+
+export default {setSignedIn, setUser, setDisplayName, setIsInstructor};

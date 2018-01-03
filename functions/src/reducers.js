@@ -47,10 +47,22 @@ function displayName(state = {}, action) {
   }
 }
 
+function isInstructor(state = {}, action) {
+  switch (action.type) {
+    case actionTypes.IS_INSTRUCTOR:
+      return {
+        isInstructor: action.isInstructor,
+      };
+    default:
+      return state
+  }
+}
+
 const userReducer = combineReducers({
   signedIn,
   user,
-  displayName
+  displayName,
+  isInstructor
 })
 
 export default userReducer;

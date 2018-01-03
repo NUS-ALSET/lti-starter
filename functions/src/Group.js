@@ -86,8 +86,9 @@ class Group extends Component {
 function mapStateToProps(state) {
 	const signedIn = state.signedIn;
 	const user = state.user;
+	const isInstructor = state.isInstructor;
 	
-	return {signedIn, user}
+	return {signedIn, user, isInstructor}
 }
 
 export default connect(mapStateToProps)(Group);

@@ -401,8 +401,16 @@ app.post('/users/verify-token', (req, res) => {
 			groupService.create(res, db, classId, uid, classTitle, '');
 			//groupService.addMember(res, db, classId, uid);
 		}
-		res.setHeader('Content-Type', 'application/json');
-		res.status(200).send({status: 'Ok'});
+		
+		userService.isInstructor(db, uid).then(function(isInstructor){
+			res.setHeader('Content-Type', 'application/json');
+			res.status(200).send({status: 'Ok', is_instructor: isInstructor});
+			
+		}).catch(function(err){
+			// Handle error
+			console.log(error);
+			res.status(403).send('Unknown');
+		});
 		
 	  }).catch(function(error) {
 		// Handle error
@@ -620,6 +628,37 @@ app.post('/answers', (req, res) => {
 			console.log(error);
 		});
 	}
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
+});
+
+
+app.post('/answers/create', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	  
+	// Using Firebase Admin SDK to verify the token
+	admin.auth().verifyIdToken(req.token)
+	  .then(function(decodedToken) {
+		var uid = decodedToken.uid;
+		var content = "";
+		var question_id = "";
+		
+		if (typeof(req.body.content) != "undefined"){
+		  content = req.body.content;
+		}
+		if (typeof(req.body.question_id) != "undefined"){
+		  question_id = req.body.question_id;
+		}
+		if (content && question_id){
+			answerService.create(res, db, question_id, uid, content);
+		}else{
+			res.status(500).send('Invalid Parameters');
+		}
+	  }).catch(function(error) {
+		// Handle error
+		console.log(error);
+	});
   }else{
 	  res.status(403).send('Not Authorization');
   }
