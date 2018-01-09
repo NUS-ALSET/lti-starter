@@ -66,35 +66,39 @@ exports.getGroupMemberByID = function (db, group_id, uid, callback){
 
 // Using Promise for NodeJS < 7.6
 exports.isInstructor = function (db, uid){
+
 	const data = new Promise(function (resolve, reject) {
-	
+
 		db.ref('instructors').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
-		
-			if (!snapshot){
-				resolve(false);
-				//return false;
-			}
+
 			var jsonData = snapshot.val();
 			
-			if (typeof(jsonData.uid) != "undefined"){
+			if (!jsonData){
+				resolve(false);
+			}
+			
+			
+			/*if (typeof(jsonData.uid) != "undefined"){
 				if (jsonData.uid == uid && jsonData.isInstructor == true){
 					resolve(true);
 					//return true;
 				}
-			}
+			}*/
 			
 			for (var key in jsonData) {
 				if (jsonData.hasOwnProperty(key)) {
 					console.log("value: " + jsonData[key].uid);
 					if (jsonData[key].uid == uid && jsonData[key].isInstructor == true){
 						resolve(true);
-						//return true;
+						break;
 					}
 				}
 			}
 			
 			resolve(false);
-			//return false;
+		}).catch(function(err){
+			console.log("Rejected: " + err);
+			reject(err);
 		});
 	});
 	

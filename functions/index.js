@@ -445,7 +445,7 @@ app.post('/groups/create', (req, res) => {
 	}
 	if (!groupName){
 		res.setHeader('Content-Type', 'application/json');
-		response.send(JSON.stringify({"err": "Requires group name"}));
+		res.send(JSON.stringify({"err": "Requires group name"}));
 	}else{
 	
 		// Using Firebase Admin SDK to verify the token
@@ -473,7 +473,7 @@ app.post('/groups', (req, res) => {
 		  .then(function(decodedToken) {
 			var uid = decodedToken.uid;
 
-			groupService.getByUserId(res, db, uid);
+			groupService.getAll(res, db, uid);
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
@@ -481,6 +481,41 @@ app.post('/groups', (req, res) => {
 	}else{
 		res.status(403).send('Not Authorization');
 	}
+});
+
+app.post('/groups/create-pass', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	 
+	var groupId = "";
+	if (typeof(req.body.group_id) != "undefined"){
+		groupId = req.body.group_id;
+	}
+	
+	var groupPassword = "";
+	if (typeof(req.body.pass) != "undefined"){
+		groupPassword = req.body.pass;
+	}
+	if (!groupId || !groupPassword){
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify({"err": "Requires password"}));
+	}else{
+	
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+			
+			groupService.createPassword(res, db, groupId, uid, groupPassword);
+			
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+			res.status(403).send('Not Authorization');
+		});
+	}
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
 });
 
 app.post('/groups/:id', (req, res) => {
@@ -506,6 +541,8 @@ app.post('/groups/:id', (req, res) => {
 		res.status(403).send('Not Authorization');
 	}
 });
+
+
 
 // QUESTIONS
 app.post('/questions', (req, res) => {

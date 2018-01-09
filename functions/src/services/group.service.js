@@ -3,11 +3,11 @@ import commonService from './common.service';
 export const groupService = {
     create,
     getAll,
-    getById
+    getById,
+	createPassword
 };
 
 function create(name) {
-	console.log("token: " + commonService.getToken());
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + commonService.getToken() },
@@ -15,6 +15,17 @@ function create(name) {
     };
 
     return fetch('/groups/create', requestOptions).then(commonService.handleResponse);
+}
+
+function createPassword(group_id, pass) {
+	console.log("Set Password");
+    const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + commonService.getToken() },
+        body: JSON.stringify({group_id: group_id, pass: pass})
+    };
+
+    return fetch('/groups/create-pass', requestOptions).then(commonService.handleResponse);
 }
 
 function getAll() {

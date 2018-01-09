@@ -36,8 +36,39 @@ exports.create = function (res, db, group_id, uid, name, password){
 	}
 };
 
-exports.getAll = function (res, db){
+exports.createPassword = function (res, db, group_id, uid, password){
 	
+	userService.isInstructor(db, uid).then(function(isInstructor){
+		
+		if (isInstructor == true){
+			
+			db.ref('groups/' + group_id).once('value').then(function(snapshot) {
+
+				snapshot.ref.update({ pass: password || '' }).then(function(data){
+
+					res.setHeader('Content-Type', 'application/json');
+					res.send(JSON.stringify({status: 'ok'}));
+				}).catch(function(err){
+					console.log(err);
+					res.status(500).send(err.message);
+				});
+			}).catch(function(err){
+				console.log(err);
+				res.status(500).send(err.message);
+			});
+		}else{
+			res.setHeader('Content-Type', 'application/json');
+			res.send(JSON.stringify({err: 'Permission Denined'}));
+		}
+	
+	}).catch(function(err){
+		console.log(err);
+		res.status(500).send(err.message);
+	});
+	
+};
+exports.getAll = function (res, db, uid){
+	var _this = this;
 	userService.isInstructor(db, uid).then(function(isInstructor){
 		if (isInstructor == true){
 			
@@ -54,10 +85,16 @@ exports.getAll = function (res, db){
 				
 				res.setHeader('Content-Type', 'application/json');
 				res.send(JSON.stringify(arrResult));
+			}).catch(function(err){
+				console.log(err);
+				res.status(500).send(err.message);
 			});
 		}else{
-			getByUserId(res, db, uid);
+			_this.getByUserId(res, db, uid);
 		}
+	}).catch(function(err){
+		console.log(err);
+		res.status(500).send(err.message);
 	});
 };
 

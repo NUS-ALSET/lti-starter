@@ -138,6 +138,9 @@ exports.getByGroupId = function (res, db, group_id, uid){
 					//res.send(JSON.stringify(arrResult));
 				});
 			});
+		}else{
+			console.log("Permission Denied");
+			res.status(403).send('Permission Denied');
 		}
 	});
 };
