@@ -397,12 +397,14 @@ app.post('/users/verify-token', (req, res) => {
 		if (typeof(decodedToken.class_title) != "undefined"){
 			classTitle = decodedToken.class_title;
 		}
-		if(classId){
-			groupService.create(res, db, classId, uid, classTitle, '');
-			//groupService.addMember(res, db, classId, uid);
-		}
 		
 		userService.isInstructor(db, uid).then(function(isInstructor){
+			
+			// Auto Create Group when the logged LTI user is an instructor
+			if(classId && isInstructor == true){
+				groupService.create(res, db, classId, uid, classTitle, '');
+			}
+		
 			res.setHeader('Content-Type', 'application/json');
 			res.status(200).send({status: 'Ok', is_instructor: isInstructor});
 			

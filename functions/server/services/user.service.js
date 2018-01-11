@@ -87,7 +87,7 @@ exports.isInstructor = function (db, uid){
 			
 			for (var key in jsonData) {
 				if (jsonData.hasOwnProperty(key)) {
-					console.log("value: " + jsonData[key].uid);
+					//console.log("value: " + jsonData[key].uid);
 					if (jsonData[key].uid == uid && jsonData[key].isInstructor == true){
 						resolve(true);
 						break;

@@ -241,7 +241,7 @@ class SignIn extends Component {
 							_this.setState({signedIn:true});
 							
 							// Verify Token, Auto create group and member if any
-							userService.verifyToken(token);
+							//userService.verifyToken(token);
 						});
 						
 					  } else {
@@ -296,7 +296,7 @@ class SignIn extends Component {
 				_this.setState({signedIn:true});
 				
 				// Verify Token, Auto create group and member if any
-				userService.verifyToken(token);
+				//userService.verifyToken(token);
 			});
 			
 			return false; // Avoid redirects after sign-in.

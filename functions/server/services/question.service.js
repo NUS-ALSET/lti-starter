@@ -87,7 +87,7 @@ exports.getByGroupId = function (res, db, group_id, uid){
 								if (!data){
 									resolve(null);
 								}else{
-									console.log(data);
+									//console.log(data);
 									
 									var question_id = (typeof(data[0]) != "undefined") ? data[0].question_id : null;
 									

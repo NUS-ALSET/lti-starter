@@ -41,9 +41,15 @@ class GroupDetails extends Component {
 					if (typeof(res.is_access) != "undefined"){
 						if (res.is_access === true){
 							_this.setState({isAccess: true});
+							_this.loadMessages();
+							_this.loadQuestions();
 						}else{
 							history.replace({ pathname: _this.joinGroupURL });
 						}
+					}
+					
+					if (typeof(res.id) == "undefined"){
+						_this.setState({isNotFound: true});
 					}
 					
 					_this.setState({loading: false});
@@ -70,6 +76,7 @@ class GroupDetails extends Component {
 	state = {
 		loading: true,
 		isAccess: false,
+		isNotFound: false,
 		group: {},
 		messages: [],
 		questions: [],
@@ -81,16 +88,24 @@ class GroupDetails extends Component {
 	 componentDidMount() {
 		 var _this = this;
 		 
-		 if (this.state.isAccess == true){
-			 // Load Messages List
-			 messageService.getByGroupId(this.id).then(function(res){
-				 _this.setState({messages: res});
-			 });
-			 
-			 // Load Question List
-			 this.loadQuestions();
-		 }
+		 /*
+		 // Load Messages List
+		 messageService.getByGroupId(this.id).then(function(res){
+			 _this.setState({messages: res});
+		 });
+		 
+		 // Load Question List
+		 this.loadQuestions();
+		 */
 	 }
+	
+	loadMessages = () =>{
+		var _this = this;
+		
+		messageService.getByGroupId(this.id).then(function(res){
+			 _this.setState({messages: res});
+		});
+	}
 	
 	loadQuestions = () =>{
 		var _this = this;
@@ -220,6 +235,14 @@ class GroupDetails extends Component {
 			<div>Loading...</div>
 		);
 	}
+	if (this.state.isNotFound){
+		return (
+			<div>
+				<h1>NOT FOUND</h1>
+			</div>
+		);
+	}
+	
 	if (!this.state.isAccess){
 		return (
 			<div>

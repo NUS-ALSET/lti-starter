@@ -93,10 +93,10 @@ exports.getByQuestionId = function (db, question_id, uid){
 		var data = new Promise(function (resolve, reject) { 
 			db.ref('answers').orderByChild("question_id").equalTo(question_id).once('value').then(function(snapshot) {
 				var jsonData = snapshot.val();
-				console.log(jsonData);
+				//console.log(jsonData);
 				for (var key in jsonData) {
 					if (jsonData.hasOwnProperty(key)) {
-						console.log(key + '---->' + jsonData[key].content);
+						//console.log(key + '---->' + jsonData[key].content);
 						if (uid == jsonData[key].uid){
 							arrResult.push({id: key, content: jsonData[key].content, uid: jsonData[key].uid, question_id: jsonData[key].question_id});
 						}

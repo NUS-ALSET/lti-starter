@@ -10,7 +10,7 @@ exports.create = function (res, db, group_id, uid, name, password){
 	
 	// If the id of group is not specified, the new group key will be generated
 	if (group_id){
-		newKey = group_id
+		newKey = group_id;
 	}else{
 		newKey = db.ref().child('groups').push().key;
 	}
@@ -25,10 +25,26 @@ exports.create = function (res, db, group_id, uid, name, password){
 	var updates = {};
 	updates['/groups/' + newKey] = groupData;
 
-	db.ref().update(updates);
+	var _this = this;
 	
-	// Auto add member to the created group
-	this.addMember(res, db, group_id, uid);
+	db.ref('groups/' + newKey).once('value').then(function(snapshot) {
+		var jsonData = snapshot.val();
+		
+		if (!jsonData){
+			db.ref().update(updates);
+	
+			// Auto add member to the created group
+			_this.addMember(res, db, group_id, uid);
+		}else{
+			console.log("existed group");
+		}
+		
+	}).catch(function(err){
+		// Return error
+		res.status(500).send(err.message);
+	});
+	
+	
 	
 	// if the group id not specified, the created group will be returned
 	if (!group_id){
@@ -168,11 +184,13 @@ exports.getById = function (res, db, id, uid){
 	
 	db.ref('group_members/' + id).once('value').then(function(snapshot) {
 		
-		if (!snapshot){
-			return false;
-		}
 		var jsonData = snapshot.val();
 		
+		if (!jsonData){
+			return false;
+		}
+		
+		console.log(jsonData);
 		if (typeof(jsonData.uid) != "undefined"){
 			if (jsonData.uid == uid){
 				return true;
@@ -181,7 +199,7 @@ exports.getById = function (res, db, id, uid){
 		
 		for (var key in jsonData) {
 			if (jsonData.hasOwnProperty(key)) {
-				console.log("value: " + jsonData[key].uid);
+				//console.log("value: " + jsonData[key].uid);
 				if (jsonData[key].uid == uid){
 					return true;
 				}
@@ -195,31 +213,30 @@ exports.getById = function (res, db, id, uid){
 		
 	}).then(function(isAccess){
 		if (isAccess === true){
-			_this._getById(res, db, id);
-			/*db.ref('groups/' + id).once('value').then(function(snapshot) {
-				var jsonData = snapshot.val();
-				res.setHeader('Content-Type', 'application/json');
-				res.send(JSON.stringify({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess}));
-			});*/
+			console.log("isAccess: true");
+			_this._getById(res, db, id, isAccess);
 		}else{
 			// Allow to view group details if the logged user is an Instructor
 			userService.isInstructor(db, uid).then(function(isInstructor){
 				if (isInstructor == true){
+					_this._getById(res, db, id, isAccess);
 				}else{
 					res.setHeader('Content-Type', 'application/json');
 					res.send(JSON.stringify({err: 'Permission Denined', id: id, is_access: false}));
 				}
 			}).catch(function(err){
+				console.log(err);
 				res.status(500).send(err.message);
 			});
 		}
 	}).catch(function(err){
+		console.log(err);
 		res.status(500).send(err.message);
 	});
 	
 }
 
-exports._getById = function (res, db, id){
+exports._getById = function (res, db, id, isAccess){
 	
 	db.ref('groups/' + id).once('value').then(function(snapshot) {
 		var jsonData = snapshot.val();
@@ -281,7 +298,7 @@ exports.isAccess = function (db, id, uid){
 			
 			for (var key in jsonData) {
 				if (jsonData.hasOwnProperty(key)) {
-					console.log("value: " + jsonData[key].uid);
+					//console.log("value: " + jsonData[key].uid);
 					if (jsonData[key].uid == uid){
 						resolve(true);
 						//return true;
@@ -304,8 +321,9 @@ exports.register = function (res, db, group_id, uid, password){
 		var jsonData = snapshot.val();
 		
 		res.setHeader('Content-Type', 'application/json');
-		
-		if (password && password == jsonData.pass){
+		if (!jsonData){
+			res.send(JSON.stringify({err: 'Not Found', is_access: false}));
+		}else if (password && password == jsonData.pass){
 			_this.addMember(res, db, group_id, uid);
 			res.send(JSON.stringify({id: group_id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: true}));
 		}else{

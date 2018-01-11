@@ -22,21 +22,24 @@ class JoinGroup extends Component {
 	
 	// The Id of group/class
 	id = null;
+	toURL = null;
 	
 	constructor(props) {
 		super(props);
 		var _this = this;
 		
-		const {match} = this.props;
+		const {match, history} = this.props;
 		if (match){
 			if (typeof (match.params.id) != "undefined"){
 				this.id = match.params.id;
+				this.toURL = '/group/' + this.id;
 				
 				groupService.getById(this.id).then(function(res){
 					_this.setState({group: res});
 					if (typeof(res.is_access) != "undefined"){
 						if (res.is_access === true){
 							_this.setState({isAccess: true});
+							history.replace({ pathname: _this.toURL });
 						}
 					}
 					_this.setState({loading: false});
@@ -62,14 +65,18 @@ class JoinGroup extends Component {
   }
   
   doAccessGroup = () =>{
+	  var _this = this;
+	  const {history} = this.props;
+	  
 	  if (this.state.newPasswordEntry){
-		var _this = this;  
+		
 		groupService.register(this.id, this.state.newPasswordEntry).then(function(res){
-			/*if (typeof(res.message) != "undefined"){
-				// Add the new message to the state of current messages List
-				_this.state.messages.push(res);
-				_this.setState({messages: _this.state.messages});
-			}*/
+			if (typeof(res.is_access) != "undefined"){
+				if (res.is_access == true){
+					_this.setState({isAccess: true});
+					history.replace({ pathname: _this.toURL });
+				}
+			}
 		}).catch(function(err){
 			// Handle error
 			console.log(err);
@@ -100,7 +107,7 @@ class JoinGroup extends Component {
 	}
 	return (
 		<div>
-			<h1>Redirect to Group {this.id}</h1>
+			<h1>You are a member of Group {this.id}</h1>
 		</div>
     );
   }
