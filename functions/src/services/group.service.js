@@ -4,7 +4,8 @@ export const groupService = {
     create,
     getAll,
     getById,
-	createPassword
+	createPassword,
+	register
 };
 
 function create(name) {
@@ -28,6 +29,17 @@ function createPassword(group_id, pass) {
     return fetch('/groups/create-pass', requestOptions).then(commonService.handleResponse);
 }
 
+function register(group_id, pass) {
+	console.log("Join Group");
+    const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + commonService.getToken() },
+        body: JSON.stringify({group_id: group_id, pass: pass})
+    };
+
+    return fetch('/groups/join', requestOptions).then(commonService.handleResponse);
+}
+
 function getAll() {
     const requestOptions = {
         method: 'POST',
@@ -43,7 +55,7 @@ function getById(id) {
         headers: commonService.authHeader()
     };
 
-    return fetch('/groups/' + id, requestOptions).then(commonService.handleResponse);
+    return fetch('/groups/' + id, requestOptions).then(commonService.handleResponse).catch(function(err){console.log("ERROR"); console.log(err);return err;});
 }
 
 /*function handleResponse(response) {

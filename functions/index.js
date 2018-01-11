@@ -518,6 +518,41 @@ app.post('/groups/create-pass', (req, res) => {
   }
 });
 
+app.post('/groups/join', (req, res) => {
+  if (typeof(req.token) != "undefined"){
+	 
+	var groupId = "";
+	if (typeof(req.body.group_id) != "undefined"){
+		groupId = req.body.group_id;
+	}
+	
+	var groupPassword = "";
+	if (typeof(req.body.pass) != "undefined"){
+		groupPassword = req.body.pass;
+	}
+	if (!groupId || !groupPassword){
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify({"err": "Requires password"}));
+	}else{
+	
+		// Using Firebase Admin SDK to verify the token
+		admin.auth().verifyIdToken(req.token)
+		  .then(function(decodedToken) {
+			var uid = decodedToken.uid;
+			
+			groupService.register(res, db, groupId, uid, groupPassword);
+			
+		  }).catch(function(error) {
+			// Handle error
+			console.log(error);
+			res.status(403).send('Not Authorization');
+		});
+	}
+  }else{
+	  res.status(403).send('Not Authorization');
+  }
+});
+
 app.post('/groups/:id', (req, res) => {
 	if (typeof(req.token) != "undefined"){
 	  

@@ -22,28 +22,34 @@ class GroupDetails extends Component {
 	
 	// The Id of group/class
 	id = null;
+	joinGroupURL = null;
 	
 	constructor(props) {
 		super(props);
 		var _this = this;
 		
-		const {match} = this.props;
+		const {match, history} = this.props;
 		console.log(match);
 		console.log(this.props);
 		if (match){
 			if (typeof (match.params.id) != "undefined"){
 				this.id = match.params.id;
-				
-				console.log("GroupID: " + this.id);
+				this.joinGroupURL = '/group/join/' + this.id;
 				
 				groupService.getById(this.id).then(function(res){
 					_this.setState({group: res});
 					if (typeof(res.is_access) != "undefined"){
 						if (res.is_access === true){
 							_this.setState({isAccess: true});
+						}else{
+							history.replace({ pathname: _this.joinGroupURL });
 						}
 					}
+					
 					_this.setState({loading: false});
+				}).catch(function(err){
+					console.log("Cannot access the group");
+					console.log(err);
 				});
 			}
 		}
@@ -75,22 +81,20 @@ class GroupDetails extends Component {
 	 componentDidMount() {
 		 var _this = this;
 		 
-		 // Load Messages List
-		 messageService.getByGroupId(this.id).then(function(res){
-			 console.log("returned messages");
-			 console.log(res);
-			 _this.setState({messages: res});
-		 });
-		 
-		 // Load Question List
-		 this.loadQuestions();
+		 if (this.state.isAccess == true){
+			 // Load Messages List
+			 messageService.getByGroupId(this.id).then(function(res){
+				 _this.setState({messages: res});
+			 });
+			 
+			 // Load Question List
+			 this.loadQuestions();
+		 }
 	 }
 	
 	loadQuestions = () =>{
 		var _this = this;
 		questionService.getByGroupId(this.id).then(function(res){
-			 console.log("returned questions");
-			 console.log(res);
 			 _this.setState({questions: res});
 		 });
 	}
