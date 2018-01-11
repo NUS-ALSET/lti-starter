@@ -164,6 +164,7 @@ exports.getByUserId = function (res, db, uid){
 };
 
 exports.getById = function (res, db, id, uid){
+	var _this = this;
 	
 	db.ref('group_members/' + id).once('value').then(function(snapshot) {
 		
@@ -194,17 +195,40 @@ exports.getById = function (res, db, id, uid){
 		
 	}).then(function(isAccess){
 		if (isAccess === true){
-			db.ref('groups/' + id).once('value').then(function(snapshot) {
+			_this._getById(res, db, id);
+			/*db.ref('groups/' + id).once('value').then(function(snapshot) {
 				var jsonData = snapshot.val();
 				res.setHeader('Content-Type', 'application/json');
 				res.send(JSON.stringify({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess}));
-			});
+			});*/
 		}else{
-			// Return error
-			//..Handle this case later
+			// Allow to view group details if the logged user is an Instructor
+			userService.isInstructor(db, uid).then(function(isInstructor){
+				if (isInstructor == true){
+				}else{
+					res.setHeader('Content-Type', 'application/json');
+					res.send(JSON.stringify({err: 'Permission Denined', id: id, is_access: false}));
+				}
+			}).catch(function(err){
+				res.status(500).send(err.message);
+			});
 		}
+	}).catch(function(err){
+		res.status(500).send(err.message);
 	});
 	
+}
+
+exports._getById = function (res, db, id){
+	
+	db.ref('groups/' + id).once('value').then(function(snapshot) {
+		var jsonData = snapshot.val();
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess}));
+	}).catch(function(err){
+		// Return error
+		res.status(500).send(err.message);
+	});
 }
 
 // Async only works with NodeJS version 7.6 or later
@@ -271,6 +295,29 @@ exports.isAccess = function (db, id, uid){
 	
 	return data;
 }
+
+exports.register = function (res, db, group_id, uid, password){
+	
+	var _this = this;
+	
+	db.ref('groups/' + group_id).once('value').then(function(snapshot) {
+		var jsonData = snapshot.val();
+		
+		res.setHeader('Content-Type', 'application/json');
+		
+		if (password && password == jsonData.pass){
+			_this.addMember(res, db, group_id, uid);
+			res.send(JSON.stringify({id: group_id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: true}));
+		}else{
+			res.send(JSON.stringify({err: 'Sorry, you are unable to join this group. Please try again', id: group_id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: false}));
+		}
+		
+	}).catch(function(err){
+		// Return error
+		res.status(500).send(err.message);
+	});
+}
+
 exports.addMember = function (res, db, group_id, uid, callback){
 	// A Member entry.
 	var memberData = {
