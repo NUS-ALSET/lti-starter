@@ -402,7 +402,18 @@ app.post('/users/verify-token', (req, res) => {
 			
 			// Auto Create Group when the logged LTI user is an instructor
 			if(classId && isInstructor == true){
-				groupService.create(res, db, classId, uid, classTitle, '');
+				groupService.create(db, classId, uid, classTitle, '').then(function(data){
+					res.setHeader('Content-Type', 'application/json');
+				
+					if (!data){
+						res.send(JSON.stringify({err: 'Error'}));
+					}else{
+						res.send(JSON.stringify(data));
+					}
+				}).catch(function(err){
+					console.log(err);
+					res.status(500).send(err.message);
+				});
 			}
 		
 			res.setHeader('Content-Type', 'application/json');
@@ -410,8 +421,8 @@ app.post('/users/verify-token', (req, res) => {
 			
 		}).catch(function(err){
 			// Handle error
-			console.log(error);
-			res.status(403).send('Unknown');
+			console.log(err);
+			res.status(403).send(err.message);
 		});
 		
 	  }).catch(function(error) {
@@ -435,16 +446,24 @@ app.post('/users/:id', (req, res) => {
 // GROUPS
 app.post('/groups/create', (req, res) => {
   if (typeof(req.token) != "undefined"){
-	 
+	
+	var groupId = "";
+	if (typeof(req.body.group_id) != "undefined"){
+		groupId = req.body.group_id;
+	}
+	
 	var groupName = "";
-	if (typeof(req.body.group_title) != "undefined"){
+	if (typeof(req.body.name) != "undefined"){
 		groupName = req.body.name;
 	}
 	
 	var groupPassword = "";
-	if (typeof(req.body.group_password) != "undefined"){
-		groupPassword = req.body.group_password;
+	if (typeof(req.body.pass) != "undefined"){
+		groupPassword = req.body.pass;
 	}
+	console.log("groupId: " + groupId);
+	console.log("groupName: " + groupName);
+	console.log("groupPass: " + groupPassword);
 	if (!groupName || !groupPassword){
 		res.setHeader('Content-Type', 'application/json');
 		res.send(JSON.stringify({"err": "Requires group name and password"}));
@@ -455,11 +474,38 @@ app.post('/groups/create', (req, res) => {
 		  .then(function(decodedToken) {
 			var uid = decodedToken.uid;
 			
-			groupService.create(res, db, null, uid, groupName, groupPassword);
+			/*if (groupId){
+				groupService.checkExist(db, groupId).then(function(isExist){
+					if (!isExist){
+						groupService.create(res, db, groupId, uid, groupName, groupPassword);
+					}else{
+						res.setHeader('Content-Type', 'application/json');
+						res.send(JSON.stringify({"err": "The Group ID has been already existed", id: groupId}));
+					}
+				}).catch(function(err){
+					console.log(err);
+					res.status(500).send(err.message);
+				});
+			}else{
+				groupService.create(res, db, null, uid, groupName, groupPassword);
+			}*/
 			
-		  }).catch(function(error) {
+			groupService.create(db, groupId, uid, groupName, groupPassword).then(function(data){
+				res.setHeader('Content-Type', 'application/json');
+				
+				if (!data){
+					res.send(JSON.stringify({err: 'Error'}));
+				}else{
+					res.send(JSON.stringify(data));
+				}
+			}).catch(function(err){
+				console.log(err);
+				res.status(500).send(err.message);
+			});
+			
+		  }).catch(function(err) {
 			// Handle error
-			console.log(error);
+			console.log(err);
 			res.status(403).send('Not Authorization');
 		});
 	}

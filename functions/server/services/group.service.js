@@ -3,54 +3,100 @@ var async = require("async");
 var Promise = require('promise');
 var userService = require('./user.service');
 
-exports.create = function (res, db, group_id, uid, name, password){
-	
-	// Get a key for a new group member.
-	var newKey = "";
-	
-	// If the id of group is not specified, the new group key will be generated
-	if (group_id){
-		newKey = group_id;
-	}else{
-		newKey = db.ref().child('groups').push().key;
-	}
-	
-	// A Group entry.
-	var groupData = {
-		uid: uid,
-		name: name,
-		pass: password || ''
-	};
-	
-	var updates = {};
-	updates['/groups/' + newKey] = groupData;
-
+exports.create = function (db, group_id, uid, name, password){
 	var _this = this;
 	
-	db.ref('groups/' + newKey).once('value').then(function(snapshot) {
-		var jsonData = snapshot.val();
+	const promise = new Promise(function (resolve, reject) {
 		
-		if (!jsonData){
-			db.ref().update(updates);
-	
-			// Auto add member to the created group
-			_this.addMember(res, db, group_id, uid);
+		// Get a key for a new group member.
+		var newKey = "";
+		
+		// If the id of group is not specified, the new group key will be generated
+		if (group_id){
+			newKey = group_id;
 		}else{
-			console.log("existed group");
+			newKey = db.ref().child('groups').push().key;
 		}
 		
-	}).catch(function(err){
-		// Return error
-		console.log(err);
-		res.status(500).send(err.message);
+		// A Group entry.
+		var groupData = {
+			uid: uid,
+			name: name,
+			pass: password || ''
+		};
+		
+		var updates = {};
+		updates['/groups/' + newKey] = groupData;
+
+		
+		
+		/*db.ref('groups/' + newKey).once('value').then(function(snapshot) {
+			var jsonData = snapshot.val();
+			
+			if (!jsonData){
+				db.ref().update(updates);
+		
+				// Auto add member to the created group
+				_this.addMember(db, newKey, uid);
+			}else{
+				console.log("existed group");
+			}
+			
+		}).catch(function(err){
+			// Return error
+			console.log(err);
+			res.status(500).send(err.message);
+		});*/
+		
+		_this.checkExist(db, newKey).then(function(isExist){
+			if (!isExist){
+				db.ref().update(updates);
+				_this.addMember(db, newKey, uid);
+				_this._getById(db, newKey, true).then(function(data){
+					resolve(data);
+				}).catch(function(err){
+					console.log(err);
+					resolve(null);
+				});
+				
+			}else{
+				resolve(null);
+			}
+		}).catch(function(err){
+			console.log(err);
+			reject(err);
+		});
+		
+		// if the group id not specified, the created group will be returned
+		//if (!group_id){
+		//	this.getById(res, db, newKey);
+		//}
 	});
 	
+	return promise;
+};
+
+exports.checkExist = function (db, group_id){
 	
+	const promise = new Promise(function (resolve, reject) {
+		db.ref('groups/' + group_id).once('value').then(function(snapshot) {
+			var jsonData = snapshot.val();
+			
+			if (jsonData){
+				// The group Id is already existed
+				resolve(true);
+			}
+			
+			resolve(false);
+			
+		}).catch(function(err){
+			// Return error
+			console.log(err);
+			reject(err);
+		});
+	});
 	
-	// if the group id not specified, the created group will be returned
-	if (!group_id){
-		this.getById(res, db, newKey);
-	}
+	return promise;
 };
 
 exports.createPassword = function (res, db, group_id, uid, password){
@@ -215,12 +261,26 @@ exports.getById = function (res, db, id, uid){
 	}).then(function(isAccess){
 		if (isAccess === true){
 			console.log("isAccess: true");
-			_this._getById(res, db, id, isAccess);
+			_this._getById(db, id, isAccess).then(function(data){
+				res.setHeader('Content-Type', 'application/json');
+				if (!data){
+					res.send(JSON.stringify({err: 'Not Found', is_access: false}));
+				}else{
+					res.send(JSON.stringify(data));
+				}
+			});
 		}else{
 			// Allow to view group details if the logged user is an Instructor
 			userService.isInstructor(db, uid).then(function(isInstructor){
 				if (isInstructor == true){
-					_this._getById(res, db, id, isAccess);
+					_this._getById(db, id, isAccess).then(function(data){
+						res.setHeader('Content-Type', 'application/json');
+						if (!data){
+							res.send(JSON.stringify({err: 'Not Found', is_access: false}));
+						}else{
+							res.send(JSON.stringify(data));
+						}
+					});
 				}else{
 					res.setHeader('Content-Type', 'application/json');
 					res.send(JSON.stringify({err: 'Permission Denined', id: id, is_access: false}));
@@ -237,16 +297,29 @@ exports.getById = function (res, db, id, uid){
 	
 }
 
-exports._getById = function (res, db, id, isAccess){
+exports._getById = function (db, id, isAccess){
 	
-	db.ref('groups/' + id).once('value').then(function(snapshot) {
-		var jsonData = snapshot.val();
-		res.setHeader('Content-Type', 'application/json');
-		res.send(JSON.stringify({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess}));
-	}).catch(function(err){
-		// Return error
-		res.status(500).send(err.message);
+	const promise = new Promise(function (resolve, reject) {
+		
+		db.ref('groups/' + id).once('value').then(function(snapshot) {
+			var jsonData = snapshot.val();
+			//res.setHeader('Content-Type', 'application/json');
+			//res.send(JSON.stringify({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess}));
+			if (!jsonData){
+				resolve(null);
+			}
+			
+			resolve({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess});
+			
+		}).catch(function(err){
+			// Return error
+			console.log(err);
+			//res.status(500).send(err.message);
+			reject(err);
+		});
 	});
+	
+	return promise;
 }
 
 // Async only works with NodeJS version 7.6 or later
@@ -325,7 +398,7 @@ exports.register = function (res, db, group_id, uid, password){
 		if (!jsonData){
 			res.send(JSON.stringify({err: 'Not Found', is_access: false}));
 		}else if (password && password == jsonData.pass){
-			_this.addMember(res, db, group_id, uid);
+			_this.addMember(db, group_id, uid);
 			res.send(JSON.stringify({id: group_id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: true}));
 		}else{
 			res.send(JSON.stringify({err: 'Sorry, you are unable to join this group. Please try again', id: group_id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: false}));
@@ -337,7 +410,7 @@ exports.register = function (res, db, group_id, uid, password){
 	});
 }
 
-exports.addMember = function (res, db, group_id, uid, callback){
+exports.addMember = function (db, group_id, uid){
 	// A Member entry.
 	var memberData = {
 		group_id: group_id,
