@@ -403,16 +403,10 @@ app.post('/users/verify-token', (req, res) => {
 			// Auto Create Group when the logged LTI user is an instructor
 			if(classId && isInstructor == true){
 				groupService.create(db, classId, uid, classTitle, '').then(function(data){
-					res.setHeader('Content-Type', 'application/json');
-				
-					if (!data){
-						res.send(JSON.stringify({err: 'Error'}));
-					}else{
-						res.send(JSON.stringify(data));
-					}
+					// Do something if needed
+					
 				}).catch(function(err){
 					console.log(err);
-					res.status(500).send(err.message);
 				});
 			}
 		

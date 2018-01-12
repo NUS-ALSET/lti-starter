@@ -78,6 +78,11 @@ class CreateGroup extends Component {
 	  this.setState({msg: ''});
 	  
 		groupService.create(this.state.newIdEntry, this.state.newNameEntry, this.state.newPasswordEntry).then(function(res){
+			
+			if (typeof(res.err) != "undefined"){
+				_this.setState({msg: res.err});
+			}
+			
 			/*if (typeof(res.is_access) != "undefined"){
 				if (res.is_access == true){
 					_this.setState({isAccess: true});
@@ -111,7 +116,10 @@ class CreateGroup extends Component {
 			<div class="row">
 				<div class="col-md-12">
 					<center><h1>Create a new group</h1></center>
-					<div>{this.state.msg}</div>
+					<div class="row">
+						<div class="col-md-2"></div>
+						<div class="col-md-10">{this.state.msg}</div>
+					</div>
 					<div class="row">
 						<div class="col-md-2">Id:</div>
 						<div class="col-md-10"><input type="text" name="txtId" onChange={this.handleIdChange}/></div>

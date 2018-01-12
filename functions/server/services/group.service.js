@@ -60,7 +60,7 @@ exports.create = function (db, group_id, uid, name, password){
 				});
 				
 			}else{
-				resolve(null);
+				resolve({err: 'Sorry, the group Id is already existed.'});
 			}
 		}).catch(function(err){
 			console.log(err);
