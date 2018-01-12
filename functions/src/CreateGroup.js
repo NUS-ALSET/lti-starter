@@ -81,14 +81,10 @@ class CreateGroup extends Component {
 			
 			if (typeof(res.err) != "undefined"){
 				_this.setState({msg: res.err});
+			}else if (typeof(res.is_access) != "undefined"){
+				_this.setState({msg: 'The group has just been created'});
 			}
-			
-			/*if (typeof(res.is_access) != "undefined"){
-				if (res.is_access == true){
-					_this.setState({isAccess: true});
-					history.replace({ pathname: _this.toURL });
-				}
-			}*/
+
 		}).catch(function(err){
 			// Handle error
 			console.log(err);

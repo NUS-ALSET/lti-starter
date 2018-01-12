@@ -5,7 +5,6 @@ var userService = require('./user.service');
 
 exports.create = function (db, group_id, uid, name, password){
 	var _this = this;
-	
 	const promise = new Promise(function (resolve, reject) {
 		
 		// Get a key for a new group member.
@@ -49,8 +48,18 @@ exports.create = function (db, group_id, uid, name, password){
 		});*/
 		
 		_this.checkExist(db, newKey).then(function(isExist){
+			console.log("isExist:" + isExist);
+			console.log(updates);
 			if (!isExist){
-				db.ref().update(updates);
+				console.log("creating group");
+				db.ref().update(updates).then(function(data){
+					console.log("... group");
+					console.log(data);
+				}).catch(function(err){
+					console.log("couldn't create group");
+					console.log(err);
+				});
+				
 				_this.addMember(db, newKey, uid);
 				_this._getById(db, newKey, true).then(function(data){
 					resolve(data);
@@ -60,6 +69,7 @@ exports.create = function (db, group_id, uid, name, password){
 				});
 				
 			}else{
+				console.log('Sorry, the group Id is already existed.');
 				resolve({err: 'Sorry, the group Id is already existed.'});
 			}
 		}).catch(function(err){
@@ -81,13 +91,16 @@ exports.checkExist = function (db, group_id){
 	const promise = new Promise(function (resolve, reject) {
 		db.ref('groups/' + group_id).once('value').then(function(snapshot) {
 			var jsonData = snapshot.val();
-			
-			if (jsonData){
+			//console.log("Checking group: " + group_id);
+			//console.log(jsonData);
+			if (!jsonData){
+				//console.log("FALSE");
+				resolve(false);
+			}else{
 				// The group Id is already existed
+				//console.log("TRUE");
 				resolve(true);
 			}
-			
-			resolve(false);
 			
 		}).catch(function(err){
 			// Return error
@@ -171,14 +184,15 @@ exports.getAll = function (res, db, uid){
 };
 
 exports.getByUserId = function (res, db, uid){
-	console.log("group getByUserId");
 	db.ref('group_members').orderByChild("uid").equalTo(uid).once('value').then(function(snapshot) {
 		var jsonData = snapshot.val();
 		var arrResult = [];
 		
-		for (var key in jsonData) {
-			if (jsonData.hasOwnProperty(key)) {
-				arrResult.push(jsonData[key].group_id);
+		if (jsonData){
+			for (var key in jsonData) {
+				if (jsonData.hasOwnProperty(key)) {
+					arrResult.push(jsonData[key].group_id);
+				}
 			}
 		}
 
@@ -217,15 +231,17 @@ exports.getByUserId = function (res, db, uid){
 						var jsonGroup = snapshot.val();
 						if(!jsonGroup){
 							// Handle this case ...
+							//reject(new Error('fail'));
+							resolve(null);
+						}else{
+							var isOwner = false;
+							
+							if (jsonGroup.uid == uid){
+								isOwner = true;
+							}
+							
+							resolve({id: selected_group_id, group_name: jsonGroup.name, uid: jsonGroup.uid, has_password: (jsonGroup.pass) ? true: false, is_owner: isOwner});
 						}
-						
-						var isOwner = false;
-						
-						if (jsonGroup.uid == uid){
-							isOwner = true;
-						}
-						
-						resolve({id: selected_group_id, group_name: jsonGroup.name, uid: jsonGroup.uid, has_password: (jsonGroup.pass) ? true: false, is_owner: isOwner});
 						
 					}).catch(err => {
 						// handle errors
@@ -237,12 +253,23 @@ exports.getByUserId = function (res, db, uid){
 			}
 			
 			Promise.all(promises).then(function(results){
+				var arrResult = [];
+				
+				for (k = 0; k < results.length; k += 1) {
+					if (results[k]){
+						arrResult.push(results[k]);
+					}
+				}
+				
 				// results is now an array of the response bodies
 				res.setHeader('Content-Type', 'application/json');
-				res.send(JSON.stringify(results));
+				res.send(JSON.stringify(arrResult));
 			}).catch(err => {
 				// handle errors
 			});
+		}else{
+			res.setHeader('Content-Type', 'application/json');
+			res.send(JSON.stringify([]));
 		}
 	});
 };
@@ -258,7 +285,6 @@ exports.getById = function (res, db, id, uid){
 			return false;
 		}
 		
-		console.log(jsonData);
 		if (typeof(jsonData.uid) != "undefined"){
 			if (jsonData.uid == uid){
 				return true;
@@ -281,14 +307,12 @@ exports.getById = function (res, db, id, uid){
 		
 	}).then(function(isAccess){
 		if (isAccess === true){
-			console.log("isAccess: true");
 			_this._getById(db, id, isAccess).then(function(data){
 				res.setHeader('Content-Type', 'application/json');
 				if (!data){
 					res.send(JSON.stringify({err: 'Not Found', is_access: false}));
 				}else{
 					data["is_owner"] = false;
-					console.log(data);
 					if (typeof(data.uid) != "undefined"){
 						if (uid && data.uid == uid){
 							data["is_owner"] = true;

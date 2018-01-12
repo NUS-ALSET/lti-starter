@@ -29,7 +29,7 @@ class PublicHeader extends Component {
 		return (
 			<div>
 			<header className="App-header">
-			  <div style="display: none"><img src={logo} className="App-logo" alt="logo" /></div>
+			  <div><img src={logo} className="App-logo" alt="logo" /></div>
 			</header>
 			</div>
 		);

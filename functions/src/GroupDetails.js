@@ -91,7 +91,8 @@ class GroupDetails extends Component {
 		
 		selected_question: {id: null, name: null},
 		
-		groupName: ''
+		groupName: '',
+		cssHide: 'css-hide'
 	};
 	
 	 componentDidMount() {
@@ -106,6 +107,10 @@ class GroupDetails extends Component {
 		 // Load Question List
 		 this.loadQuestions();
 		 */
+		 
+		 if (this.props.isInstructor.isInstructor == true){
+			 this.setState({cssHide: ''});
+		 }
 	 }
 	
 	loadMessages = () =>{
@@ -160,14 +165,13 @@ class GroupDetails extends Component {
 	  this.setState({newQuestionEntry: e.target.value});
 	}
   
-  createQuestion = () =>{
+  createQuestion = (props) =>{
 	  if (this.state.newQuestionEntry){
 		var _this = this;  
 		questionService.create(this.id, this.state.newQuestionEntry).then(function(res){
 			if (typeof(res.name) != "undefined"){
 				// Add the new question to the state of current Question List
-				_this.state.questions.push(res);
-				_this.setState({questions: _this.state.questions});
+				_this.loadQuestions();
 			}
 		});
 	  }
@@ -183,14 +187,27 @@ class GroupDetails extends Component {
 	  const content = props.entries.map((post) =>{
 		  
 		  let boundAnswerClick = this.handleAnswerClick.bind(this, post);
+		  console.log("QUESTIONS");
+		  console.log(this.props.isInstructor.isInstructor);
+		  
+		  if (this.props.isInstructor.isInstructor == false){
+			  return(
+				<div key={post.id}>
+					<div className="row">
+					  <div className="col-md-12">{post.name}</div>
+					</div>
+					<div className="row">
+						<div className="col-md-12"><button  type="button" name="btnAnswerModal" onClick={boundAnswerClick}>Submit an answer</button></div>
+					</div>
+					<this.Answer entries={post.answer_data} />
+				</div>
+				)
+		  }
 		  
 		  return(
 			<div key={post.id}>
 				<div className="row">
 				  <div className="col-md-12">{post.name}</div>
-				</div>
-				<div className="row">
-					<div className="col-md-12"><button  type="button" name="btnAnswerModal" onClick={boundAnswerClick}>Submit an answer</button></div>
 				</div>
 				<this.Answer entries={post.answer_data} />
 			</div>
@@ -301,7 +318,7 @@ class GroupDetails extends Component {
 				</div>
 				<div className="col-md-6 question-block">
 					<center><h1>Questions</h1></center>
-					<div>
+					<div className={this.state.cssHide}>
 						<span>Create a question:</span>
 						<input type="text" name="txtQuestion" id="txtQuestion" onChange={this.handleQuestionChange}/><button type="button" name="btnQSend" id="btnQSend" onClick={this.createQuestion}>Submit</button>
 					</div>

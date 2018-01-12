@@ -48,62 +48,67 @@ class App extends Component {
 		super(props);
 		var _this = this;
 		const {dispatch} = this.props;
-		
-		firebase.auth().onAuthStateChanged(function(currentUser) {
-		  if (currentUser) {
-		  
-			// User is signed in.
-			var uid = currentUser.uid;
-			console.log("Already signed in");
-			console.log("uid:" + uid);
-			
-			var displayName = currentUser.displayName ? currentUser.displayName: uid;
-			var providerData = currentUser.providerData;
-			
-			currentUser.getIdToken().then(function(token){	
-				dispatch(actions.setSignedIn(true));
-				dispatch(actions.setDisplayName(displayName));
-				dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
-				localStorage.removeItem('user');
-				localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
+		//this.setState({loading:false});
+		if (window.location.href.indexOf("ctoken") != -1 || window.location.href.indexOf("signin") != -1){
+			//this.setState({loading:false});
+		}else{
+			console.log("Doesn't exist ctoken");
+			firebase.auth().onAuthStateChanged(function(currentUser) {
+			  if (currentUser) {
+			  
+				// User is signed in.
+				var uid = currentUser.uid;
+				console.log("Already signed in");
+				console.log("uid:" + uid);
 				
-				// Verify Token, Auto create group and member if any
-				userService.verifyToken(token).then(function(data){
-					dispatch(actions.setIsInstructor(data.is_instructor));
-					_this.setState({signedIn:true});
-					_this.setState({displayName:displayName});
-					_this.setState({uid:uid});
-					_this.setState({loading:false});
-					
-				}).catch(function(err) {
-					// Error
-					console.log("Sign out as the id of token cannot be verified");
-					dispatch(actions.setSignedIn(false));
-					dispatch(actions.setDisplayName(''));
-					dispatch(actions.setUser({}));
+				var displayName = currentUser.displayName ? currentUser.displayName: uid;
+				var providerData = currentUser.providerData;
+				
+				currentUser.getIdToken().then(function(token){	
+					dispatch(actions.setSignedIn(true));
+					dispatch(actions.setDisplayName(displayName));
+					dispatch(actions.setUser({displayName: displayName, uid: uid, token: token}));
 					localStorage.removeItem('user');
+					localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 					
-					_this.setState({signedIn:false});
-					_this.setState({displayName:null});
-					_this.setState({uid:null});
-					_this.setState({loading:false});
+					// Verify Token, Auto create group and member if any
+					userService.verifyToken(token).then(function(data){
+						dispatch(actions.setIsInstructor(data.is_instructor));
+						_this.setState({signedIn:true});
+						_this.setState({displayName:displayName});
+						_this.setState({uid:uid});
+						_this.setState({loading:false});
+						
+					}).catch(function(err) {
+						// Error
+						console.log("Sign out as the id of token cannot be verified");
+						dispatch(actions.setSignedIn(false));
+						dispatch(actions.setDisplayName(''));
+						dispatch(actions.setUser({}));
+						localStorage.removeItem('user');
+						
+						_this.setState({signedIn:false});
+						_this.setState({displayName:null});
+						_this.setState({uid:null});
+						_this.setState({loading:false});
+					});
 				});
+				
+			  } else {
+			  
+				// User is signed out.
+				dispatch(actions.setSignedIn(false));
+				dispatch(actions.setDisplayName(''));
+				dispatch(actions.setUser({}));
+				localStorage.removeItem('user');
+				
+				_this.setState({signedIn:false});
+				_this.setState({displayName:null});
+				_this.setState({uid:null});
+				_this.setState({loading:false});
+			  }
 			});
-			
-		  } else {
-		  
-			// User is signed out.
-			dispatch(actions.setSignedIn(false));
-			dispatch(actions.setDisplayName(''));
-			dispatch(actions.setUser({}));
-			localStorage.removeItem('user');
-			
-			_this.setState({signedIn:false});
-			_this.setState({displayName:null});
-			_this.setState({uid:null});
-			_this.setState({loading:false});
-		  }
-		});
+		}
 	}
 
 	state = {
@@ -114,6 +119,9 @@ class App extends Component {
 	
 	componentDidMount() {
 		// Do something if needed
+		if (window.location.href.indexOf("ctoken") != -1 || window.location.href.indexOf("signin") != -1){
+			this.setState({loading:false});
+		}
 	}
 
 	componentWillReceiveProps(){
@@ -209,15 +217,29 @@ class SignIn extends Component {
 	constructor(props) {
 		super(props);
 		var _this = this;
-		console.log("Signin");
-		const {match, dispatch} = this.props;
-		console.log(this.props);
-		console.log("----------------------------END----------------------------");
+		const {match, dispatch, history} = this.props;
 		if (match){
 			if (typeof (match.params.id) != "undefined"){
 				this.ctoken = match.params.id;
 				
 				if (this.ctoken){
+					
+					firebase.auth().signOut().then(function(){
+						// Initialize the FirebaseUI Widget using Firebase.
+						//var ui = new firebaseui.auth.AuthUI(firebase.auth());
+						// The start method will wait until the DOM is loaded.
+						//ui.start('#firebaseui-auth-container', uiConfig);
+						
+						// User is signed out.
+						//dispatch(actions.setSignedIn(false));
+						//dispatch(actions.setDisplayName(''));
+						//dispatch(actions.setUser({}));
+						localStorage.removeItem('user');
+							
+					}).catch(function(error){
+						// An error happended.
+					});
+		
 					firebase.auth().signInWithCustomToken(this.ctoken).catch(function(error) {
 					  // Handle Errors here.
 					  var errorCode = error.code;
@@ -242,29 +264,49 @@ class SignIn extends Component {
 							localStorage.removeItem('user');
 							localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 							
-							_this.setState({signedIn:true});
+							//_this.setState({signedIn:true});
 							
 							// Verify Token, Auto create group and member if any
-							//userService.verifyToken(token);
+							userService.verifyToken(token).then(function(data){
+								dispatch(actions.setIsInstructor(data.is_instructor));
+								_this.setState({loading:false});
+								history.replace({ pathname: '/groups' });
+								
+							}).catch(function(err) {
+								// Error
+								dispatch(actions.setSignedIn(false));
+								dispatch(actions.setDisplayName(''));
+								dispatch(actions.setUser({}));
+								localStorage.removeItem('user');
+								
+								_this.setState({loading:false});
+							});
 						});
 						
 					  } else {
 					  
 						// User is signed out.
-						dispatch(actions.setSignedIn(false));
+						/*dispatch(actions.setSignedIn(false));
 						dispatch(actions.setUser({}));
 						localStorage.removeItem('user');
 						
 						_this.setState({signedIn:false});
-						console.log("signed out");
+						console.log("signed out");*/
 					  }
 					});
+				}else{
+					this.setState({loading:false});
 				}
+			}else{
+				this.setState({loading:false});
 			}
+		}else{
+			this.setState({loading:false});
 		}
 	}
 
 	state = {
+		loading: true,
 		signedIn: false, // Local signed-in state.
 	};
 	
@@ -309,6 +351,13 @@ class SignIn extends Component {
 	};
 	
   render() {
+	  
+	/*if (this.state.loading){
+		return (
+			<div>Checking ...</div>
+		);
+	}
+	*/
 	if (!this.state.signedIn) {
 		return (
 			<FirebaseAuth uiConfig={this.uiConfig} firebaseAuth={firebase.auth()}/>
@@ -364,13 +413,27 @@ class SignInWCToken extends Component {
 	constructor(props) {
 		super(props);
 		var _this = this;
-		const {match} = this.props;
+		const {match, dispatch, history} = this.props;
 		
 		if (match){
 			if (typeof (match.params.id) != "undefined"){
 				this.ctoken = match.params.id;
 				
 				if (this.ctoken){
+					// Sign out first
+					firebase.auth().signOut().then(function(){
+						// Initialize the FirebaseUI Widget using Firebase.
+						//var ui = new firebaseui.auth.AuthUI(firebase.auth());
+						// The start method will wait until the DOM is loaded.
+						//ui.start('#firebaseui-auth-container', uiConfig);
+						
+						// User is signed out.
+						localStorage.removeItem('user');
+							
+					}).catch(function(error){
+						// An error happended.
+					});
+		
 					firebase.auth().signInWithCustomToken(this.ctoken).catch(function(error) {
 					  // Handle Errors here.
 					  var errorCode = error.code;
@@ -391,18 +454,31 @@ class SignInWCToken extends Component {
 							
 							localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 							
-							_this.setState({loading:false});
+							//_this.setState({loading:false});
 							
 							// Verify Token, Auto create group and member if any
-							userService.verifyToken(token);
+							userService.verifyToken(token).then(function(data){
+								dispatch(actions.setIsInstructor(data.is_instructor));
+								_this.setState({loading:false});
+								//history.replace({ pathname: '/groups' });
+								
+							}).catch(function(err) {
+								// Error
+								dispatch(actions.setSignedIn(false));
+								dispatch(actions.setDisplayName(''));
+								dispatch(actions.setUser({}));
+								localStorage.removeItem('user');
+								
+								_this.setState({loading:false});
+							});
 						});
 						
 					  } else {
 					  
 						// User is signed out.
-						localStorage.removeItem('user');
+						//localStorage.removeItem('user');
 						
-						_this.setState({loading:false});
+						//_this.setState({loading:false});
 						
 						console.log("signed out");
 					  }
@@ -429,3 +505,5 @@ class SignInWCToken extends Component {
 	);
   }
 }
+
+const SignInWCTokenC = connect(mapStateToProps)(SignInWCToken);

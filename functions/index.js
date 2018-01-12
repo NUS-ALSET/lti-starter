@@ -153,9 +153,9 @@ appLTI.post("/*", (request, response) => {
 					
 					if (isValid == true){
 						//Add the LTI member to group members
-						if (group_id){
-							model.addGroupMember(db, group_id, uid);
-						}
+						//if (group_id){
+						//	model.addGroupMember(db, group_id, uid);
+						//}
 					}else{
 						var str = "";
 						if (err){
@@ -404,14 +404,18 @@ app.post('/users/verify-token', (req, res) => {
 			if(classId && isInstructor == true){
 				groupService.create(db, classId, uid, classTitle, '').then(function(data){
 					// Do something if needed
+					res.setHeader('Content-Type', 'application/json');
+					res.status(200).send({status: 'Ok', is_instructor: isInstructor});
 					
 				}).catch(function(err){
 					console.log(err);
+					res.setHeader('Content-Type', 'application/json');
+					res.status(200).send({status: 'Ok', is_instructor: isInstructor});
 				});
+			}else{
+				res.setHeader('Content-Type', 'application/json');
+				res.status(200).send({status: 'Ok', is_instructor: isInstructor});
 			}
-		
-			res.setHeader('Content-Type', 'application/json');
-			res.status(200).send({status: 'Ok', is_instructor: isInstructor});
 			
 		}).catch(function(err){
 			// Handle error
