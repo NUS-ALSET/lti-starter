@@ -438,16 +438,16 @@ app.post('/groups/create', (req, res) => {
 	 
 	var groupName = "";
 	if (typeof(req.body.group_title) != "undefined"){
-		groupName = req.body.group_name;
+		groupName = req.body.name;
 	}
 	
 	var groupPassword = "";
 	if (typeof(req.body.group_password) != "undefined"){
 		groupPassword = req.body.group_password;
 	}
-	if (!groupName){
+	if (!groupName || !groupPassword){
 		res.setHeader('Content-Type', 'application/json');
-		res.send(JSON.stringify({"err": "Requires group name"}));
+		res.send(JSON.stringify({"err": "Requires group name and password"}));
 	}else{
 	
 		// Using Firebase Admin SDK to verify the token
@@ -460,6 +460,7 @@ app.post('/groups/create', (req, res) => {
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
+			res.status(403).send('Not Authorization');
 		});
 	}
   }else{
@@ -479,6 +480,7 @@ app.post('/groups', (req, res) => {
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
+			res.status(403).send('Not Authorization');
 		});
 	}else{
 		res.status(403).send('Not Authorization');
@@ -573,6 +575,7 @@ app.post('/groups/:id', (req, res) => {
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
+			res.status(403).send('Not Authorization');
 		});
 	}else{
 		res.status(403).send('Not Authorization');
@@ -592,7 +595,7 @@ app.post('/questions', (req, res) => {
 	
 	if (!groupId){
 		res.setHeader('Content-Type', 'application/json');
-		response.send(JSON.stringify({"err": "Requires group"}));
+		res.send(JSON.stringify({"err": "Requires group"}));
 	}else{
 	
 		// Using Firebase Admin SDK to verify the token
@@ -605,6 +608,7 @@ app.post('/questions', (req, res) => {
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
+			res.status(403).send('Not Authorization');
 		});
 	}
   }else{
@@ -626,7 +630,7 @@ app.post('/questions/create', (req, res) => {
 	}
 	if (!name || !group_id){
 		res.setHeader('Content-Type', 'application/json');
-		response.send(JSON.stringify({"err": "Requires question name"}));
+		res.send(JSON.stringify({"err": "Requires question name"}));
 	}else{
 	
 		// Using Firebase Admin SDK to verify the token
@@ -639,6 +643,7 @@ app.post('/questions/create', (req, res) => {
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
+			res.status(403).send('Not Authorization');
 		});
 	}
   }else{
@@ -656,7 +661,7 @@ app.post('/questions/group/:group_id', (req, res) => {
 	
 	if (!groupId){
 		res.setHeader('Content-Type', 'application/json');
-		response.send(JSON.stringify({"err": "Requires group"}));
+		res.send(JSON.stringify({"err": "Requires group"}));
 	}else{
 	
 		// Using Firebase Admin SDK to verify the token
@@ -669,6 +674,7 @@ app.post('/questions/group/:group_id', (req, res) => {
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
+			res.status(403).send('Not Authorization');
 		});
 	}
   }else{
@@ -687,7 +693,7 @@ app.post('/answers', (req, res) => {
 	
 	if (!questionId){
 		res.setHeader('Content-Type', 'application/json');
-		response.send(JSON.stringify({"err": "Requires question"}));
+		res.send(JSON.stringify({"err": "Requires question"}));
 	}else{
 	
 		// Using Firebase Admin SDK to verify the token
@@ -700,6 +706,7 @@ app.post('/answers', (req, res) => {
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
+			res.status(403).send('Not Authorization');
 		});
 	}
   }else{
@@ -732,6 +739,7 @@ app.post('/answers/create', (req, res) => {
 	  }).catch(function(error) {
 		// Handle error
 		console.log(error);
+		res.status(403).send('Not Authorization');
 	});
   }else{
 	  res.status(403).send('Not Authorization');
@@ -761,6 +769,7 @@ app.post('/messages/create', (req, res) => {
 	  }).catch(function(error) {
 		// Handle error
 		console.log(error);
+		res.status(403).send('Not Authorization');
 	});
   }else{
 	  res.status(403).send('Not Authorization');
@@ -803,6 +812,7 @@ app.post('/messages/group/:group_id', (req, res) => {
 		  }).catch(function(error) {
 			// Handle error
 			console.log(error);
+			res.status(403).send('Not Authorization');
 		});
 	}else{
 		res.status(403).send('Not Authorization');

@@ -98,7 +98,7 @@ class JoinGroup extends Component {
 						<center><h1>Request to join the group {this.id}</h1></center>
 						<div>
 							<span>Enter Group Password:</span>
-							<input type="password" name="txtGroupPassword" onChange={this.handlePasswordChange}/><button type="button" name="btnSend" onClick={this.doAccessGroup}>Submit</button>
+							<input type="text" name="txtGroupPassword" onChange={this.handlePasswordChange}/><button type="button" name="btnSend" onClick={this.doAccessGroup}>Submit</button>
 						</div>
 					</div>
 				</div>

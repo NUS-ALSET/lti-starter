@@ -8,11 +8,11 @@ export const groupService = {
 	register
 };
 
-function create(name) {
+function create(id, name, pass) {
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + commonService.getToken() },
-        body: JSON.stringify({name: name})
+        body: JSON.stringify({group_id: id, name: name, pass: pass})
     };
 
     return fetch('/groups/create', requestOptions).then(commonService.handleResponse);

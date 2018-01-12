@@ -41,6 +41,7 @@ exports.create = function (res, db, group_id, uid, name, password){
 		
 	}).catch(function(err){
 		// Return error
+		console.log(err);
 		res.status(500).send(err.message);
 	});
 	
