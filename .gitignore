@@ -7,3 +7,9 @@
 # System Files
 .DS_Store
 Thumbs.db
+
+# Private Files
+service-account.json
+
+
+firebase-debug.log
