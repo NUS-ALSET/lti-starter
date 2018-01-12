@@ -1,0 +1,23 @@
+{
+  "instructors" : {
+    "-L-56KFSLDKFJSD" : {
+      "isInstructor" : true,
+      "type" : "google.com",
+      "uid" : "F5doBWQbeEbLVzQntNfBQnwrmmW2"
+    },
+    "-L-56LKSDFJSK" : {
+      "isInstructor" : true,
+      "type" : "LTI",
+      "uid" : "29123@jisc.ac.uk"
+    }
+  },
+  "secrets" : {
+    "-KzlvFCGV9vP7rrv_KS2" : {
+      "consumer_key" : "jisc.ac.uk",
+      "consumer_secret" : "secret"
+    }
+  },
+  "settings" : {
+    "disableGoogleLogin" : false
+  }
+}

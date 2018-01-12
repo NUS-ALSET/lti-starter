@@ -52,7 +52,6 @@ class App extends Component {
 		if (window.location.href.indexOf("ctoken") != -1 || window.location.href.indexOf("signin") != -1){
 			//this.setState({loading:false});
 		}else{
-			console.log("Doesn't exist ctoken");
 			firebase.auth().onAuthStateChanged(function(currentUser) {
 			  if (currentUser) {
 			  
