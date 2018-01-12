@@ -132,17 +132,26 @@ exports.createPassword = function (res, db, group_id, uid, password){
 };
 exports.getAll = function (res, db, uid){
 	var _this = this;
-	userService.isInstructor(db, uid).then(function(isInstructor){
+	/*userService.isInstructor(db, uid).then(function(isInstructor){
 		if (isInstructor == true){
 			
 			db.ref('groups').once('value').then(function(snapshot) {
 				var jsonGroups = snapshot.val();
 				var arrResult = [];
 				
-				for (var key in jsonGroups) {
-					if (jsonGroups.hasOwnProperty(key)) {
-						
-						arrResult.push({id: key, group_name: jsonGroups[key].name, uid: jsonGroups[key].uid, has_password: (jsonGroups[key].pass) ? true: false});
+				var isOnwer = false;
+				
+				if (jsonGroups){
+					for (var key in jsonGroups) {
+						if (jsonGroups.hasOwnProperty(key)) {
+							isOnwer = false;
+							
+							if (uid == jsonGroups[key].uid){
+								isOnwer = true;
+							}
+							
+							arrResult.push({id: key, group_name: jsonGroups[key].name, uid: jsonGroups[key].uid, has_password: (jsonGroups[key].pass) ? true: false, is_owner: isOnwer});
+						}
 					}
 				}
 				
@@ -152,13 +161,13 @@ exports.getAll = function (res, db, uid){
 				console.log(err);
 				res.status(500).send(err.message);
 			});
-		}else{
+		}else{*/
 			_this.getByUserId(res, db, uid);
-		}
+		/*}
 	}).catch(function(err){
 		console.log(err);
 		res.status(500).send(err.message);
-	});
+	});*/
 };
 
 exports.getByUserId = function (res, db, uid){
@@ -206,9 +215,21 @@ exports.getByUserId = function (res, db, uid){
 					var selected_group_id = group_ids[k];
 					db.ref('groups/' + group_ids[k]).once('value').then(function(snapshot) {
 						var jsonGroup = snapshot.val();
-						resolve({id: selected_group_id, group_name: jsonGroup.name, uid: jsonGroup.uid, has_password: (jsonGroup.pass) ? true: false});
+						if(!jsonGroup){
+							// Handle this case ...
+						}
+						
+						var isOwner = false;
+						
+						if (jsonGroup.uid == uid){
+							isOwner = true;
+						}
+						
+						resolve({id: selected_group_id, group_name: jsonGroup.name, uid: jsonGroup.uid, has_password: (jsonGroup.pass) ? true: false, is_owner: isOwner});
+						
 					}).catch(err => {
 						// handle errors
+						reject(err);
 					});
 				})
 			  
@@ -266,18 +287,27 @@ exports.getById = function (res, db, id, uid){
 				if (!data){
 					res.send(JSON.stringify({err: 'Not Found', is_access: false}));
 				}else{
+					data["is_owner"] = false;
+					console.log(data);
+					if (typeof(data.uid) != "undefined"){
+						if (uid && data.uid == uid){
+							data["is_owner"] = true;
+						}
+					}
 					res.send(JSON.stringify(data));
 				}
 			});
 		}else{
 			// Allow to view group details if the logged user is an Instructor
-			userService.isInstructor(db, uid).then(function(isInstructor){
-				if (isInstructor == true){
+			//userService.isInstructor(db, uid).then(function(isInstructor){
+			_this.isOwner(db, id, uid).then(function(isOwner){
+				if (isOwner == true){
 					_this._getById(db, id, isAccess).then(function(data){
 						res.setHeader('Content-Type', 'application/json');
 						if (!data){
 							res.send(JSON.stringify({err: 'Not Found', is_access: false}));
 						}else{
+							data["is_owner"] = true;
 							res.send(JSON.stringify(data));
 						}
 					});
@@ -307,9 +337,9 @@ exports._getById = function (db, id, isAccess){
 			//res.send(JSON.stringify({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess}));
 			if (!jsonData){
 				resolve(null);
+			}else{
+				resolve({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess});
 			}
-			
-			resolve({id: id, group_name: jsonData.name, uid: jsonData.uid, has_password: (jsonData.pass)? true: false, is_access: isAccess});
 			
 		}).catch(function(err){
 			// Return error
@@ -385,6 +415,32 @@ exports.isAccess = function (db, id, uid){
 	});
 	
 	return data;
+}
+
+exports.isOwner = function (db, id, uid){
+	var _this = this;
+	
+	const promise = new Promise(function (resolve, reject) {
+		_this._getById(db, id).then(function(data){
+			
+			if (!data){
+				resolve(false);
+			}else{
+				if (typeof(data.uid) != "undefined"){
+					resolve(false);
+				}else if(data.uid == uid){
+					resolve(true);
+				}else{
+					resolve(false);
+				}
+			}
+		}).catch(function(err){
+			console.log(err);
+			reject(err);
+		});
+	});
+	
+	return promise;
 }
 
 exports.register = function (res, db, group_id, uid, password){

@@ -22,6 +22,7 @@ import Group from './Group';
 import GroupDetails from './GroupDetails';
 import JoinGroup from './JoinGroup';
 import CreateGroup from './CreateGroup';
+import SetPasswordGroup from './SetPasswordGroup';
 
 import actions from './actions';
 
@@ -174,6 +175,7 @@ class App extends Component {
 				<MainLayout exact path="/" component={RequireAuth(Group)} />
 				<MainLayout exact path="/groups" component={RequireAuth(Group)}/>
 				<MainLayout path="/group/create" component={RequireAuth(CreateGroup)} />
+				<MainLayout path="/group/pass-protected/:id" component={RequireAuth(SetPasswordGroup)} />
 				<MainLayout path="/group/join/:id" component={RequireAuth(JoinGroup)} />
 				<MainLayout path="/group/:id" component={RequireAuth(GroupDetails)} />
 				

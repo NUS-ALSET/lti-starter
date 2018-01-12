@@ -67,7 +67,7 @@ class MainHeader extends Component {
 			<header className="App-header">
 			  <div><img src={logo} className="App-logo" alt="logo" /></div>
 			  <div>Welcome {this.state.displayName} {this.state.userType}</div>
-			  <div class="user-info">
+			  <div className="user-info">
 				  <Link to={`/groups`}>Home</Link>
 				  &nbsp; | &nbsp;
 				  <this.createGroupLink />

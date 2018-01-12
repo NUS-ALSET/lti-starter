@@ -113,28 +113,28 @@ class CreateGroup extends Component {
 	
 	return (
 		<div>
-			<div class="row">
-				<div class="col-md-12">
+			<div className="row">
+				<div className="col-md-12">
 					<center><h1>Create a new group</h1></center>
-					<div class="row">
-						<div class="col-md-2"></div>
-						<div class="col-md-10">{this.state.msg}</div>
+					<div className="row">
+						<div className="col-md-2"></div>
+						<div className="col-md-10">{this.state.msg}</div>
 					</div>
-					<div class="row">
-						<div class="col-md-2">Id:</div>
-						<div class="col-md-10"><input type="text" name="txtId" onChange={this.handleIdChange}/></div>
+					<div className="row">
+						<div className="col-md-2">Id:</div>
+						<div className="col-md-10"><input type="text" name="txtId" onChange={this.handleIdChange}/></div>
 					</div>
-					<div class="row">
-						<div class="col-md-2">Name:</div>
-						<div class="col-md-10"><input type="text" name="txtName" onChange={this.handleNameChange}/></div>
+					<div className="row">
+						<div className="col-md-2">Name:</div>
+						<div className="col-md-10"><input type="text" name="txtName" onChange={this.handleNameChange}/></div>
 					</div>
-					<div class="row">
-						<div class="col-md-2">Password:</div>
-						<div class="col-md-10"><input type="text" name="txtGroupPassword" onChange={this.handlePasswordChange}/></div>
+					<div className="row">
+						<div className="col-md-2">Password:</div>
+						<div className="col-md-10"><input type="text" name="txtGroupPassword" onChange={this.handlePasswordChange}/></div>
 					</div>
 					<div>
-						<div class="col-md-2"></div>
-						<div class="col-md-10"><button type="button" name="btnSend" onClick={this.createGroup}>Submit</button></div>
+						<div className="col-md-2"></div>
+						<div className="col-md-10"><button type="button" name="btnSend" onClick={this.createGroup}>Submit</button></div>
 					</div>
 				</div>
 			</div>

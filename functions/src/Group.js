@@ -75,6 +75,7 @@ class Group extends Component {
   }
   
   handleGroupPasswordClick = (group, e) =>{
+	  console.log("handleGroupPasswordClick");
 	  e.preventDefault();
 	  this.handleOpenModal(group);
   }
@@ -84,14 +85,15 @@ class Group extends Component {
 	  const content = props.entries.map((data) =>{
 	  
 		let boundGroupPasswordClick = this.handleGroupPasswordClick.bind(this, data);
+
+		//<a onClick={this.boundGroupPasswordClick}> Password</a>
 		
 		return (
-			<div class="row" key={data.id}>
-			  <div class="col-md-4">{data.id}</div>
-			  <div class="col-md-4">{data.group_name}</div>
-			  <div class="cold-md-4">
+			<div className="row" key={data.id}>
+			  <div className="col-md-4">{data.id}</div>
+			  <div className="col-md-4">{data.group_name}</div>
+			  <div className="cold-md-4">
 				<Link to={`/group/${data.id}`}>View</Link>
-				<a onClick={boundGroupPasswordClick}> Password </a>
 			  </div>
 			</div>
 		)
@@ -131,20 +133,20 @@ class Group extends Component {
 			>
 			<button onClick={this.handleCloseModal}>Close</button>
 			
-			<div class="row">
-				<div class="col-md-12">
+			<div className="row">
+				<div className="col-md-12">
 					<h1>{this.state.selected_group.name}</h1>
 				</div>
 			</div>
 			
-			<div class="row">
-				<div class="col-md-12">
+			<div className="row">
+				<div className="col-md-12">
 					<input type="password" onChange={this.handleGroupPasswordChange}/>
 				</div>
 			</div>
 			
-			<div class="row">
-				<div class="col-md-12">
+			<div className="row">
+				<div className="col-md-12">
 					<button type="button" name="btnSetPass" onClick={this.createGroupPassword}>Submit</button>
 				</div>
 			</div>

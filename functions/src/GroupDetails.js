@@ -10,7 +10,7 @@ import {
   Redirect,
   withRouter,
   Switch
-} from 'react-router';
+} from 'react-router-dom';
 
 import ReactModal from 'react-modal';
 
@@ -37,10 +37,16 @@ class GroupDetails extends Component {
 				this.joinGroupURL = '/group/join/' + this.id;
 				
 				groupService.getById(this.id).then(function(res){
-					_this.setState({group: res});
+					if (typeof(res.err) == "undefined" && typeof(res.id) != "undefined"){
+						_this.setState({group: res});
+						_this.setState({groupName: res.group_name});
+					}
 					if (typeof(res.is_access) != "undefined"){
 						if (res.is_access === true){
 							_this.setState({isAccess: true});
+							if(res.is_owner === true){
+								_this.setState({isOnwer: true});
+							}
 							_this.loadMessages();
 							_this.loadQuestions();
 						}else{
@@ -62,6 +68,7 @@ class GroupDetails extends Component {
 		
 		this.handleOpenModal = this.handleOpenModal.bind(this);
 		this.handleCloseModal = this.handleCloseModal.bind(this);
+		//this.passwordProtectedGroupLink = this.passwordProtectedGroupLink.bind(this)
 	}
 	
 	handleOpenModal (question) {
@@ -82,7 +89,9 @@ class GroupDetails extends Component {
 		questions: [],
 		showModal: false,
 		
-		selected_question: {id: null, name: null}
+		selected_question: {id: null, name: null},
+		
+		groupName: ''
 	};
 	
 	 componentDidMount() {
@@ -134,10 +143,10 @@ class GroupDetails extends Component {
   
   Message = (props) =>{
 	  const content = props.entries.map((post) =>
-		<div class="row" key={post.id}>
-		  <div class="col-md-4">{post.id}</div>
-		  <div class="col-md-4">{post.uid}</div>
-		  <div class="col-md-4">{post.message}</div>
+		<div className="row" key={post.id}>
+		  <div className="col-md-4">{post.id}</div>
+		  <div className="col-md-4">{post.uid}</div>
+		  <div className="col-md-4">{post.message}</div>
 		</div>
 	  );
 	  return (
@@ -176,12 +185,12 @@ class GroupDetails extends Component {
 		  let boundAnswerClick = this.handleAnswerClick.bind(this, post);
 		  
 		  return(
-			<div>
-				<div class="row" key={post.id}>
-				  <div class="col-md-12">{post.name}</div>
+			<div key={post.id}>
+				<div className="row">
+				  <div className="col-md-12">{post.name}</div>
 				</div>
-				<div class="row">
-					<div class="col-md-12"><button key={post.id} type="button" name="btnAnswerModal" onClick={boundAnswerClick}>Submit</button></div>
+				<div className="row">
+					<div className="col-md-12"><button  type="button" name="btnAnswerModal" onClick={boundAnswerClick}>Submit an answer</button></div>
 				</div>
 				<this.Answer entries={post.answer_data} />
 			</div>
@@ -197,9 +206,9 @@ class GroupDetails extends Component {
 
   Answer = (props) =>{
 	  const content = props.entries.map((post) =>
-		<div class="row answer-row" key={post.id}>
-			<div class="col-md-4">{post.uid}</div>
-			<div class="col-md-8">{post.content}</div>
+		<div className="row answer-row" key={post.id}>
+			<div className="col-md-4">{post.uid}</div>
+			<div className="col-md-8">{post.content}</div>
 		</div>
 	  );
 	  return (
@@ -229,6 +238,21 @@ class GroupDetails extends Component {
 	  }
   }
   
+  passwordProtectedGroupLink = (props) =>{
+	  console.log(this.props.isInstructor);
+		if (typeof(this.props.isInstructor) != "undefined"){
+			if (this.props.isInstructor.isInstructor == true){
+				return (
+					<Link to={`/group/pass-protected/${this.id}`}>Password-Protected Group</Link>
+				);
+			}
+		}
+		
+		return(
+			<div></div>
+		);
+	}
+	
   render() {
 	if (this.state.loading){
 		return (
@@ -252,18 +276,22 @@ class GroupDetails extends Component {
 	}
 	return (
 		<div>
-			<div class="row group-info-block">
-				<div class="row">
-					<div class="col-md-2">Group ID:</div>
-					<div class="col-md-2">{this.id}</div>
+			<div className="row group-info-block">
+				<div className="row">
+					<div className="col-md-2">Group ID:</div>
+					<div className="col-md-2">{this.id}</div>
 				</div>
-				<div class="row">
-					<div class="col-md-2">Group Name:</div>
-					<div class="col-md-2"></div>
+				<div className="row">
+					<div className="col-md-2">Group Name:</div>
+					<div className="col-md-2">{this.state.groupName}</div>
+				</div>
+				<div className="row">
+					<div className="col-md-2"></div>
+					<div className="col-md-2"><this.passwordProtectedGroupLink /></div>
 				</div>
 			</div>
-			<div class="row">
-				<div class="col-md-6 message-block">
+			<div className="row">
+				<div className="col-md-6 message-block">
 					<center><h1>Messages</h1></center>
 					<div>
 						<span>Leave a message:</span>
@@ -271,7 +299,7 @@ class GroupDetails extends Component {
 					</div>
 					<this.Message entries={this.state.messages} />
 				</div>
-				<div class="col-md-6 question-block">
+				<div className="col-md-6 question-block">
 					<center><h1>Questions</h1></center>
 					<div>
 						<span>Create a question:</span>
@@ -289,20 +317,20 @@ class GroupDetails extends Component {
 			>
 				<button onClick={this.handleCloseModal}>Close</button>
 				
-				<div class="row">
-					<div class="col-md-12">
+				<div className="row">
+					<div className="col-md-12">
 						<h1>{this.state.selected_question.name}</h1>
 					</div>
 				</div>
 				
-				<div class="row">
-					<div class="col-md-12">
+				<div className="row">
+					<div className="col-md-12">
 						<textarea width="400px" height="200px" onChange={this.handleAnswerChange}/>
 					</div>
 				</div>
 				
-				<div class="row">
-					<div class="col-md-12">
+				<div className="row">
+					<div className="col-md-12">
 						<button type="button" name="btnASend" id="btnASend" onClick={this.createAnswer}>Submit</button>
 					</div>
 				</div>
