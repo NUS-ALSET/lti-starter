@@ -459,9 +459,7 @@ app.post('/groups/create', (req, res) => {
 	if (typeof(req.body.pass) != "undefined"){
 		groupPassword = req.body.pass;
 	}
-	console.log("groupId: " + groupId);
-	console.log("groupName: " + groupName);
-	console.log("groupPass: " + groupPassword);
+
 	if (!groupName || !groupPassword){
 		res.setHeader('Content-Type', 'application/json');
 		res.send(JSON.stringify({"err": "Requires group name and password"}));

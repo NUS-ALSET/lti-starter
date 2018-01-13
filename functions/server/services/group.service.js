@@ -64,6 +64,7 @@ exports.create = function (db, group_id, uid, name, password){
 				});
 				
 			}else{
+				_this.addMember(db, newKey, uid);
 				console.log('Sorry, the group Id is already existed.');
 				resolve({err: 'Sorry, the group Id is already existed.'});
 			}
@@ -470,7 +471,6 @@ exports.addMember = function (db, group_id, uid){
 	};
 
 	this.isAccess(db, group_id, uid).then(function(isAccess){
-		console.log("isAccess: " + isAccess);
 		if (isAccess == false){
 
 			// Get a key for a new member.
