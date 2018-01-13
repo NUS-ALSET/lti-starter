@@ -378,30 +378,35 @@ exports.isAccess = async function (db, id, uid){
 exports.isAccess = function (db, id, uid){
 	const data = new Promise(function (resolve, reject) {
 		db.ref('group_members').orderByChild("group_id").equalTo(id).once('value').then(function(snapshot) {
-			if (!snapshot){
-				resolve(false);
-				//return false;
-			}
+			
 			var jsonData = snapshot.val();
-			
-			if (typeof(jsonData.uid) != "undefined"){
-				if (jsonData.uid == uid){
-					resolve(true);
-					//return true;
-				}
-			}
-			
-			for (var key in jsonData) {
-				if (jsonData.hasOwnProperty(key)) {
-					//console.log("value: " + jsonData[key].uid);
-					if (jsonData[key].uid == uid){
+			if (!jsonData){
+				resolve(false);
+			}else{
+				var isResolve = false;
+				if (typeof(jsonData.uid) != "undefined"){
+					if (jsonData.uid == uid){
+						isResolve = true;
 						resolve(true);
-						//return true;
 					}
 				}
+				
+				for (var key in jsonData) {
+					if (jsonData.hasOwnProperty(key)) {
+						//console.log("value: " + jsonData[key].uid);
+						if (jsonData[key].uid == uid){
+							isResolve= true;
+							resolve(true);
+						}
+					}
+				}
+				if (!isResolve){
+				resolve(false);
+				}
 			}
-			resolve(false);
-			//return false;
+		}).catch(function(err){
+			console.log(err);
+			reject(err);
 		});
 	});
 	
@@ -463,14 +468,25 @@ exports.addMember = function (db, group_id, uid){
 		uid: uid,
 		status: 'active'
 	};
-	
-	// Get a key for a new member.
-	var newKey = db.ref().child('group_members').push().key;
-	
-	var updates = {};
-	updates['/group_members/' + newKey] = memberData;
 
-	db.ref().update(updates);
+	this.isAccess(db, group_id, uid).then(function(isAccess){
+		console.log("isAccess: " + isAccess);
+		if (isAccess == false){
+
+			// Get a key for a new member.
+			var newKey = db.ref().child('group_members').push().key;
+			
+			var updates = {};
+			updates['/group_members/' + newKey] = memberData;
+
+			db.ref().update(updates);
+		}
+			
+	}).catch(function(err){
+		console.log(err);
+	});
+	
+	
 };
 
 
