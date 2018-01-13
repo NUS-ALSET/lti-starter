@@ -53,7 +53,6 @@ exports.getById = function (res, db, id){
 exports.getByGroupId = function (res, db, group_id, uid){
 
 	groupService.isAccess(db, group_id, uid).then(function(isAccess){
-
 		if (isAccess == true){
 			//userService.isInstructor(db, uid).then(function(isInstructor){
 			groupService.isOwner(db, group_id, uid).then(function(isOwner){

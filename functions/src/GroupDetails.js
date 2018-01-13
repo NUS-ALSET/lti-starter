@@ -187,8 +187,6 @@ class GroupDetails extends Component {
 	  const content = props.entries.map((post) =>{
 		  
 		  let boundAnswerClick = this.handleAnswerClick.bind(this, post);
-		  console.log("QUESTIONS");
-		  console.log(this.props.isInstructor.isInstructor);
 		  
 		  if (this.props.isInstructor.isInstructor == false){
 			  return(
@@ -256,7 +254,6 @@ class GroupDetails extends Component {
   }
   
   passwordProtectedGroupLink = (props) =>{
-	  console.log(this.props.isInstructor);
 		if (typeof(this.props.isInstructor) != "undefined"){
 			if (this.props.isInstructor.isInstructor == true){
 				return (

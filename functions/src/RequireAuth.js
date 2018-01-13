@@ -20,8 +20,11 @@ export default function RequireAuth(TargetComponent){
 			console.log("Restricted");
 			console.log(params);
 			console.log(params.signedIn.signedIn);
-			if (!params.signedIn.signedIn){
-				history.replace({ pathname: '/signin' });
+			if (typeof(params.signedIn.signedIn) != "undefined"){
+				
+				if (!params.signedIn.signedIn){
+					history.replace({ pathname: '/signin' });
+				}
 			}
         }
         render() {

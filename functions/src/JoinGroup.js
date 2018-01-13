@@ -93,8 +93,8 @@ class JoinGroup extends Component {
 	if (!this.state.isAccess){
 		return (
 			<div>
-				<div class="row">
-					<div class="col-md-12">
+				<div className="row">
+					<div className="col-md-12">
 						<center><h1>Request to join the group {this.id}</h1></center>
 						<div>
 							<span>Enter Group Password:</span>

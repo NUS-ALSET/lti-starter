@@ -55,10 +55,14 @@ class MainHeader extends Component {
 		if (typeof(this.state.isInstructor) != "undefined"){
 			if (this.state.isInstructor == true){
 				return (
-					<Link to={`/group/create`}>Create Group</Link>
+					<div><Link to={`/group/create`}>Create Group</Link>&nbsp; | &nbsp;</div>
 				);
 			}
 		}
+		
+		return (
+			<div>&nbsp;</div>
+		)
 	}
 	
 	render() {
@@ -71,7 +75,7 @@ class MainHeader extends Component {
 				  <Link to={`/groups`}>Home</Link>
 				  &nbsp; | &nbsp;
 				  <this.createGroupLink />
-				  &nbsp; | &nbsp;
+				  
 				  <Link to={`/signout`}>Sign Out</Link>
 			  </div>
 			</header>

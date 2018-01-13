@@ -48,13 +48,8 @@ exports.create = function (db, group_id, uid, name, password){
 		});*/
 		
 		_this.checkExist(db, newKey).then(function(isExist){
-			console.log("isExist:" + isExist);
-			console.log(updates);
 			if (!isExist){
-				console.log("creating group");
 				db.ref().update(updates).then(function(data){
-					console.log("... group");
-					console.log(data);
 				}).catch(function(err){
 					console.log("couldn't create group");
 					console.log(err);
@@ -277,35 +272,7 @@ exports.getByUserId = function (res, db, uid){
 exports.getById = function (res, db, id, uid){
 	var _this = this;
 	
-	db.ref('group_members/' + id).once('value').then(function(snapshot) {
-		
-		var jsonData = snapshot.val();
-		
-		if (!jsonData){
-			return false;
-		}
-		
-		if (typeof(jsonData.uid) != "undefined"){
-			if (jsonData.uid == uid){
-				return true;
-			}
-		}
-		
-		for (var key in jsonData) {
-			if (jsonData.hasOwnProperty(key)) {
-				//console.log("value: " + jsonData[key].uid);
-				if (jsonData[key].uid == uid){
-					return true;
-				}
-			}
-		}
-		
-		//if (!Object.keys(jsonData).length){
-		//	return false;
-		//}
-		return false;
-		
-	}).then(function(isAccess){
+	_this.isAccess(db, id, uid).then(function(isAccess){
 		if (isAccess === true){
 			_this._getById(db, id, isAccess).then(function(data){
 				res.setHeader('Content-Type', 'application/json');
@@ -410,7 +377,7 @@ exports.isAccess = async function (db, id, uid){
 // Promise for NodeJS < 7.6
 exports.isAccess = function (db, id, uid){
 	const data = new Promise(function (resolve, reject) {
-		db.ref('group_members/' + id).once('value').then(function(snapshot) {
+		db.ref('group_members').orderByChild("group_id").equalTo(id).once('value').then(function(snapshot) {
 			if (!snapshot){
 				resolve(false);
 				//return false;
@@ -446,11 +413,10 @@ exports.isOwner = function (db, id, uid){
 	
 	const promise = new Promise(function (resolve, reject) {
 		_this._getById(db, id).then(function(data){
-			
 			if (!data){
 				resolve(false);
 			}else{
-				if (typeof(data.uid) != "undefined"){
+				if (typeof(data.uid) == "undefined"){
 					resolve(false);
 				}else if(data.uid == uid){
 					resolve(true);
@@ -499,8 +465,7 @@ exports.addMember = function (db, group_id, uid){
 	};
 	
 	// Get a key for a new member.
-	//var newKey = admin.database().ref().child('group_members').push().key;
-	var newKey = group_id;
+	var newKey = db.ref().child('group_members').push().key;
 	
 	var updates = {};
 	updates['/group_members/' + newKey] = memberData;

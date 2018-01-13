@@ -48,10 +48,7 @@ class App extends Component {
 		super(props);
 		var _this = this;
 		const {dispatch} = this.props;
-		//this.setState({loading:false});
-		if (window.location.href.indexOf("ctoken") != -1 || window.location.href.indexOf("signin") != -1){
-			//this.setState({loading:false});
-		}else{
+		if (window.location.href.indexOf("ctoken") == -1 && window.location.href.indexOf("signin") == -1){
 			firebase.auth().onAuthStateChanged(function(currentUser) {
 			  if (currentUser) {
 			  
@@ -70,25 +67,26 @@ class App extends Component {
 					localStorage.removeItem('user');
 					localStorage.setItem('user', JSON.stringify({displayName: displayName, uid: uid, token: token}));
 					
+					//_this.setState({loading:false});
+					
 					// Verify Token, Auto create group and member if any
 					userService.verifyToken(token).then(function(data){
 						dispatch(actions.setIsInstructor(data.is_instructor));
-						_this.setState({signedIn:true});
-						_this.setState({displayName:displayName});
-						_this.setState({uid:uid});
+						//_this.setState({signedIn:true});
+						//_this.setState({displayName:displayName});
+						//_this.setState({uid:uid});
 						_this.setState({loading:false});
 						
 					}).catch(function(err) {
 						// Error
-						console.log("Sign out as the id of token cannot be verified");
 						dispatch(actions.setSignedIn(false));
 						dispatch(actions.setDisplayName(''));
 						dispatch(actions.setUser({}));
 						localStorage.removeItem('user');
 						
-						_this.setState({signedIn:false});
-						_this.setState({displayName:null});
-						_this.setState({uid:null});
+						//_this.setState({signedIn:false});
+						//_this.setState({displayName:null});
+						//_this.setState({uid:null});
 						_this.setState({loading:false});
 					});
 				});
@@ -101,10 +99,10 @@ class App extends Component {
 				dispatch(actions.setUser({}));
 				localStorage.removeItem('user');
 				
-				_this.setState({signedIn:false});
-				_this.setState({displayName:null});
-				_this.setState({uid:null});
-				_this.setState({loading:false});
+				//_this.setState({signedIn:false});
+				//_this.setState({displayName:null});
+				//_this.setState({uid:null});
+				////_this.setState({loading:false});
 			  }
 			});
 		}
@@ -116,6 +114,10 @@ class App extends Component {
 		messages: []
 	};
 	
+	componentWillUnmount() {
+	  
+	}
+
 	componentDidMount() {
 		// Do something if needed
 		if (window.location.href.indexOf("ctoken") != -1 || window.location.href.indexOf("signin") != -1){
@@ -504,5 +506,3 @@ class SignInWCToken extends Component {
 	);
   }
 }
-
-const SignInWCTokenC = connect(mapStateToProps)(SignInWCToken);
