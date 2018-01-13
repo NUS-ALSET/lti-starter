@@ -1,0 +1,39 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase serve --only functions",
+    "shell": "firebase experimental:functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "build": "react-scripts build"
+  },
+  "dependencies": {
+    "async": "^2.6.0",
+    "body-parser": "^1.18.2",
+    "btoa": "^1.1.2",
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "express-bearer-token": "^2.1.1",
+    "express-handlebars": "^3.0.0",
+    "firebase-admin": "~5.4.2",
+    "firebase-functions": "^0.7.1",
+    "firebaseui": "^2.4.1",
+    "ims-lti": "^3.0.2",
+    "morgan": "^1.9.0",
+    "path": "^0.12.7",
+    "promise": "^8.0.1",
+    "react": "^16.2.0",
+    "react-bootstrap": "^0.31.5",
+    "react-dom": "^16.2.0",
+    "react-firebaseui": "^1.0.10",
+    "react-modal": "^3.1.10",
+    "react-redux": "^5.0.6",
+    "react-router-dom": "^4.2.2",
+    "react-scripts": "1.0.17",
+    "redux": "^3.7.2",
+    "redux-logger": "^3.0.6"
+  },
+  "private": true
+}

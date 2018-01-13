@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Firebase Sign In</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/live/4.1/firebase.js"></script>
+	<script type="text/javascript">
+	var config = {
+	  apiKey: "{{config.apiKey}}",
+	  authDomain: "{{config.authDomain}}",
+	  databaseURL: "{{config.databaseURL}}",
+	  storageBucket: "{{config.storageBucket}}"
+	};
+	firebase.initializeApp(config);
+  
+	</script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/2.4.1/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/2.4.1/firebaseui.css" />
+	<script type="text/javascript">
+      // FirebaseUI config.
+      var uiConfig = {
+		//signInFlow: 'popup',
+        signInSuccessUrl: '<url-to-redirect-to-on-success>',
+		callbacks: {
+          signInSuccess: function(currentUser, credential, redirectUrl) {
+			if (currentUser){
+				// Signed in
+				/*currentUser.getIdToken().then(function(accessToken){
+				
+					// Verify Token
+					$.ajax({
+					  method: "post",
+					  url: document.location + "/verify",
+					  dataType: "json",
+					  data: { user_uid: "{{user_uid}}", "accessToken": accessToken}
+					})
+						.done(function( data ) {
+							var customToken = "";
+							if (typeof(data.customToken) != "underline"){
+								customToken = data.customToken;
+							}
+							
+							// Token is already verified
+							if (customToken){
+							
+								// Sign in with custom token
+								firebase.auth().signInWithCustomToken(data.customToken).catch(function(error) {
+								  // Handle Errors here.
+								  var errorCode = error.code;
+								  var errorMessage = error.message;
+								});
+							}
+			
+						})
+					  
+						.fail(function( jqXHR, textStatus ) {
+							console.log( "Request failed: " + textStatus );
+						});
+				});*/
+				
+			}else{
+				// Signed out
+			}
+            // Return type determines whether we continue the redirect automatically
+            // or whether we leave that to developer to handle.
+            window.close();
+			return false;
+          },
+          uiShown: function() {
+            // The widget is rendered.
+            // Hide the loader.
+            //document.getElementById('loader').style.display = 'none';
+          }
+        },
+        signInOptions: [
+          // Leave the lines as is for the providers you want to offer your users.
+          firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+          //firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+          //firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+          //firebase.auth.GithubAuthProvider.PROVIDER_ID,
+          //firebase.auth.EmailAuthProvider.PROVIDER_ID,
+          //firebase.auth.PhoneAuthProvider.PROVIDER_ID
+        ],
+        // Terms of service url.
+        tosUrl: '<your-tos-url>'
+      };
+
+      // Initialize the FirebaseUI Widget using Firebase.
+      var ui = new firebaseui.auth.AuthUI(firebase.auth());
+      // The start method will wait until the DOM is loaded.
+      ui.start('#firebaseui-auth-container', uiConfig);
+    </script>
+  </head>
+  <body>
+	<div id="firebaseui-auth-container"></div>
+  </body>
+</html>
