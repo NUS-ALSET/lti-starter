@@ -293,7 +293,7 @@ class SignIn extends Component {
 						
 						_this.setState({signedIn:false});
 						console.log("signed out");*/
-						_this.setState({loading:false});
+						//_this.setState({loading:false});
 					  }
 					});
 				}else{
